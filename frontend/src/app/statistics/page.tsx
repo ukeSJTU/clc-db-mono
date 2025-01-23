@@ -3,6 +3,8 @@ import {
   ChiralityDistChart,
   CategoryDistChart,
   WeightDistributionChart,
+  HUMODistributionChart,
+  LUMODistributionChart,
 } from "@/components/StatsCharts";
 
 const StatisticsPage = () => {
@@ -43,7 +45,29 @@ const StatisticsPage = () => {
         </div>
       </div>
 
-      {/* TODO: 添加两张柱状图，一张是HUMO，一张是LUMO */}
+      <div className="w-full lg:w-2/3 mx-auto">
+        <h3 className="text-2xl font-semibold mb-4 text-center">
+          Molecule Distribution by HUMO energy
+        </h3>
+        <div
+          className="bg-white shadow-lg rounded-lg p-6 mx-auto"
+          style={{ height: "800px", maxWidth: "800px" }}
+        >
+          <HUMODistributionChart />
+        </div>
+      </div>
+
+      <div className="w-full lg:w-2/3 mx-auto">
+        <h3 className="text-2xl font-semibold mb-4 text-center">
+          Molecule Distribution by LUMO energy
+        </h3>
+        <div
+          className="bg-white shadow-lg rounded-lg p-6 mx-auto"
+          style={{ height: "800px", maxWidth: "800px" }}
+        >
+          <LUMODistributionChart />
+        </div>
+      </div>
 
       <div className="w-full lg:w-2/3 mx-auto">
         <h3 className="text-2xl font-semibold mb-4 text-center">

@@ -27,6 +27,8 @@ from stats.views import (
     ChiralityDistributionViewSet,
     CategoryDistributionViewSet,
     CategoryViewSet,
+    HUMODistributionViewSet,
+    LUMODistributionViewSet,
 )
 
 router = DefaultRouter()
@@ -45,6 +47,8 @@ router.register(
     r"stats/category", CategoryDistributionViewSet, basename="stats-category"
 )
 router.register(r"categories", CategoryViewSet, basename="category")
+router.register(r"stats/humo", HUMODistributionViewSet, basename="stats-humo")
+router.register(r"stats/lumo", LUMODistributionViewSet, basename="stats-lumo")
 
 
 urlpatterns = [path("admin/", admin.site.urls), path("api/", include(router.urls))]

@@ -105,3 +105,87 @@ class CategoryDistributionViewSet(viewsets.ViewSet):
     def list(self, request):
         distribution_data = self.get_category_distribution()
         return Response(distribution_data)
+
+
+class HUMODistributionViewSet(viewsets.ViewSet):
+    def get_humo_distribution(self):
+        # Define HUMO ranges
+        humo_ranges = ["-10--5", "-5-0", "0-5", "5-10", "10-15", "15+"]
+
+        humo_bins = {
+            "-10--5": 0,
+            "-5-0": 0,
+            "0-5": 0,
+            "5-10": 0,
+            "10-15": 0,
+            "15+": 0,
+        }
+
+        # Classify molecules into HUMO bins
+        for molecule in Molecule.objects.all():
+            humo = molecule.homo_energy
+            if humo is not None:
+                if -10 <= humo < -5:
+                    humo_bins["-10--5"] += 1
+                elif humo < 0:
+                    humo_bins["-5-0"] += 1
+                elif humo < 5:
+                    humo_bins["0-5"] += 1
+                elif humo < 10:
+                    humo_bins["5-10"] += 1
+                elif humo < 15:
+                    humo_bins["10-15"] += 1
+                else:
+                    humo_bins["15+"] += 1
+
+        # Prepare data for the chart
+        data = {
+            "labels": humo_ranges,
+            "values": [humo_bins[range_] for range_ in humo_ranges],
+        }
+        return data
+
+    def list(self, request):
+        return Response(self.get_humo_distribution())
+
+
+class LUMODistributionViewSet(viewsets.ViewSet):
+    def get_lumo_distribution(self):
+        # Define LUMO ranges
+        lumo_ranges = ["-10--5", "-5-0", "0-5", "5-10", "10-15", "15+"]
+
+        lumo_bins = {
+            "-10--5": 0,
+            "-5-0": 0,
+            "0-5": 0,
+            "5-10": 0,
+            "10-15": 0,
+            "15+": 0,
+        }
+
+        # Classify molecules into LUMO bins
+        for molecule in Molecule.objects.all():
+            lumo = molecule.lumo_energy
+            if lumo is not None:
+                if -10 <= lumo < -5:
+                    lumo_bins["-10--5"] += 1
+                elif lumo < 0:
+                    lumo_bins["-5-0"] += 1
+                elif lumo < 5:
+                    lumo_bins["0-5"] += 1
+                elif lumo < 10:
+                    lumo_bins["5-10"] += 1
+                elif lumo < 15:
+                    lumo_bins["10-15"] += 1
+                else:
+                    lumo_bins["15+"] += 1
+
+        # Prepare data for the chart
+        data = {
+            "labels": lumo_ranges,
+            "values": [lumo_bins[range_] for range_ in lumo_ranges],
+        }
+        return data
+
+    def list(self, request):
+        return Response(self.get_lumo_distribution())

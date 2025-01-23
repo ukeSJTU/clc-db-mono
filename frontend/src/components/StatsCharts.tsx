@@ -184,4 +184,108 @@ const WeightDistributionChart = () => {
   );
 };
 
-export { ChiralityDistChart, CategoryDistChart, WeightDistributionChart };
+const HUMODistributionChart = () => {
+  const [chartData, setChartData] = useState({
+    labels: [],
+    datasets: [],
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await api.get("/stats/humo");
+        const data = response.data;
+        setChartData({
+          labels: data.labels,
+          datasets: [
+            {
+              label: "HUMO Energy",
+              data: data.values,
+              backgroundColor: "rgba(255, 99, 132, 0.2)",
+            },
+          ],
+        });
+      } catch (error) {
+        console.log("Error fetching HUMO distribution data", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  return (
+    <div className="w-full h-full">
+      <Bar
+        data={chartData}
+        options={{
+          maintainAspectRatio: false,
+          responsive: true,
+          plugins: {
+            legend: { position: "top" },
+            title: {
+              display: false,
+              text: "HUMO Energy Distribution",
+            },
+          },
+        }}
+      />
+    </div>
+  );
+};
+
+const LUMODistributionChart = () => {
+  const [chartData, setChartData] = useState({
+    labels: [],
+    datasets: [],
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await api.get("/stats/lumo");
+        const data = response.data;
+        setChartData({
+          labels: data.labels,
+          datasets: [
+            {
+              label: "LUMO Energy",
+              data: data.values,
+              backgroundColor: "rgba(54, 162, 235, 0.2)",
+            },
+          ],
+        });
+      } catch (error) {
+        console.log("Error fetching LUMO distribution data", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  return (
+    <div className="w-full h-full">
+      <Bar
+        data={chartData}
+        options={{
+          maintainAspectRatio: false,
+          responsive: true,
+          plugins: {
+            legend: { position: "top" },
+            title: {
+              display: false,
+              text: "LUMO Energy Distribution",
+            },
+          },
+        }}
+      />
+    </div>
+  );
+};
+
+export {
+  ChiralityDistChart,
+  CategoryDistChart,
+  WeightDistributionChart,
+  HUMODistributionChart,
+  LUMODistributionChart,
+};
