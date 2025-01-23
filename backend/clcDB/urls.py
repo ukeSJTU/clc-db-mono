@@ -31,6 +31,7 @@ from stats.views import (
     LUMODistributionViewSet,
 )
 from cluster.views import SDFUploaderViewSet, ClusteringViewSet
+from files.views import DownloadViewSet
 
 router = DefaultRouter()
 
@@ -54,5 +55,7 @@ router.register(r"stats/lumo", LUMODistributionViewSet, basename="stats-lumo")
 router.register(r"cluster/upload/sdf", SDFUploaderViewSet, basename="upload-sdf")
 router.register(r"cluster/process", ClusteringViewSet, basename="cluster")
 
+router.register(r"download/molecules", DownloadViewSet, basename="molecule")
+router.register(r"download/categories", DownloadViewSet, basename="class")
 
 urlpatterns = [path("admin/", admin.site.urls), path("api/", include(router.urls))]
