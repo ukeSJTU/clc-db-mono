@@ -16,6 +16,35 @@ import {
 import { useEffect, useState } from "react";
 import api from "@/utils/api";
 
+interface CategoryData {
+  category__name: string;
+  count: number;
+}
+
+interface ChiralityData {
+  chirality__name: string;
+  count: number;
+}
+
+interface WeightData {
+  labels: string[];
+  values: number[];
+}
+
+interface EnergyData {
+  labels: string[];
+  values: number[];
+}
+
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label?: string;
+    data: number[];
+    backgroundColor: string | string[];
+  }[];
+}
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -27,18 +56,21 @@ ChartJS.register(
 );
 
 const CategoryDistChart = () => {
-  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+  const [chartData, setChartData] = useState<ChartData>({
+    labels: [],
+    datasets: [],
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await api.get("/stats/category");
-        const data = response.data;
+        const data = response.data as CategoryData[];
 
         console.log(data);
 
-        const labels = data.map((item) => item.category__name);
-        const counts = data.map((item) => item.count);
+        const labels = data.map((item: CategoryData) => item.category__name);
+        const counts = data.map((item: CategoryData) => item.count);
 
         setChartData({
           labels,
@@ -79,18 +111,21 @@ const CategoryDistChart = () => {
 };
 
 const ChiralityDistChart = () => {
-  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+  const [chartData, setChartData] = useState<ChartData>({
+    labels: [],
+    datasets: [],
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await api.get("/stats/chirality");
-        const data = response.data;
+        const data = response.data as ChiralityData[];
 
         console.log(data);
 
-        const labels = data.map((item) => item.chirality__name);
-        const counts = data.map((item) => item.count);
+        const labels = data.map((item: ChiralityData) => item.chirality__name);
+        const counts = data.map((item: ChiralityData) => item.count);
 
         setChartData({
           labels,
@@ -136,7 +171,7 @@ const ChiralityDistChart = () => {
 };
 
 const WeightDistributionChart = () => {
-  const [chartData, setChartData] = useState({
+  const [chartData, setChartData] = useState<ChartData>({
     labels: [],
     datasets: [],
   });
@@ -145,7 +180,7 @@ const WeightDistributionChart = () => {
     const fetchData = async () => {
       try {
         const response = await api.get("/stats/weights");
-        const data = response.data;
+        const data = response.data as WeightData;
         setChartData({
           labels: data.labels,
           datasets: [
@@ -185,7 +220,7 @@ const WeightDistributionChart = () => {
 };
 
 const HUMODistributionChart = () => {
-  const [chartData, setChartData] = useState({
+  const [chartData, setChartData] = useState<ChartData>({
     labels: [],
     datasets: [],
   });
@@ -194,7 +229,7 @@ const HUMODistributionChart = () => {
     const fetchData = async () => {
       try {
         const response = await api.get("/stats/humo");
-        const data = response.data;
+        const data = response.data as EnergyData;
         setChartData({
           labels: data.labels,
           datasets: [
@@ -220,6 +255,21 @@ const HUMODistributionChart = () => {
         options={{
           maintainAspectRatio: false,
           responsive: true,
+          scales: {
+            x: {
+              ticks: {
+                autoSkip: false,
+                maxRotation: 90,
+                minRotation: 90,
+                callback: function (value: number | string, index: number) {
+                  // Show only every 3rd label to reduce clutter
+                  const numValue =
+                    typeof value === "string" ? parseFloat(value) : value;
+                  return index % 3 === 0 ? this.getLabelForValue(numValue) : "";
+                },
+              },
+            },
+          },
           plugins: {
             legend: { position: "top" },
             title: {
@@ -234,7 +284,7 @@ const HUMODistributionChart = () => {
 };
 
 const LUMODistributionChart = () => {
-  const [chartData, setChartData] = useState({
+  const [chartData, setChartData] = useState<ChartData>({
     labels: [],
     datasets: [],
   });
@@ -243,7 +293,7 @@ const LUMODistributionChart = () => {
     const fetchData = async () => {
       try {
         const response = await api.get("/stats/lumo");
-        const data = response.data;
+        const data = response.data as EnergyData;
         setChartData({
           labels: data.labels,
           datasets: [
@@ -269,6 +319,21 @@ const LUMODistributionChart = () => {
         options={{
           maintainAspectRatio: false,
           responsive: true,
+          scales: {
+            x: {
+              ticks: {
+                autoSkip: false,
+                maxRotation: 90,
+                minRotation: 90,
+                callback: function (value: number | string, index: number) {
+                  // Show only every 3rd label to reduce clutter
+                  const numValue =
+                    typeof value === "string" ? parseFloat(value) : value;
+                  return index % 3 === 0 ? this.getLabelForValue(numValue) : "";
+                },
+              },
+            },
+          },
           plugins: {
             legend: { position: "top" },
             title: {

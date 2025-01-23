@@ -3,6 +3,7 @@ from django.db.models import Count
 
 from rest_framework import viewsets
 from rest_framework.response import Response
+from collections import defaultdict
 from proteins.models import Molecule, Category
 from proteins.serializers import MoleculeSerializer, CategorySerializer
 
@@ -107,85 +108,154 @@ class CategoryDistributionViewSet(viewsets.ViewSet):
         return Response(distribution_data)
 
 
-class HUMODistributionViewSet(viewsets.ViewSet):
-    def get_humo_distribution(self):
-        # Define HUMO ranges
-        humo_ranges = ["-10--5", "-5-0", "0-5", "5-10", "10-15", "15+"]
+# class HUMODistributionViewSet(viewsets.ViewSet):
+#     def get_humo_distribution(self):
+#         # Define HUMO ranges with 1/3 intervals
+#         humo_ranges = []
+#         humo_bins = {}
+        
+#         # Generate ranges from -14 to -3 with 1/3 steps
+#         start = -14.0
+#         while start < -3:
+#             end = round(start + 1/3, 2)
+#             # Ensure range string format is correct
+#             if start < end:
+#                 range_str = f"{start:.2f}-{end:.2f}"
+#                 humo_ranges.append(range_str)
+#                 humo_bins[range_str] = 0
+#                 start = end
+#             else:
+#                 break
 
-        humo_bins = {
-            "-10--5": 0,
-            "-5-0": 0,
-            "0-5": 0,
-            "5-10": 0,
-            "10-15": 0,
-            "15+": 0,
+#         # Classify molecules into HUMO bins
+#         for molecule in Molecule.objects.all():
+#             humo = molecule.homo_energy
+#             if humo is not None:
+#                 for range_str in humo_ranges:
+#                     try:
+#                         # Split and convert to float only if range_str is valid
+#                         if '-' in range_str:
+#                             start, end = map(float, range_str.split('-'))
+#                             if start <= humo < end:
+#                                 humo_bins[range_str] += 1
+#                                 break
+#                     except ValueError:
+#                         continue
+
+#         # Prepare data for the chart
+#         data = {
+#             "labels": humo_ranges,
+#             "values": [humo_bins[range_] for range_ in humo_ranges],
+#         }
+#         return data
+
+#     def list(self, request):
+#         return Response(self.get_humo_distribution())
+
+
+# class LUMODistributionViewSet(viewsets.ViewSet):
+#     def get_lumo_distribution(self):
+#         # Define LUMO ranges with 1/3 intervals
+#         lumo_ranges = []
+#         lumo_bins = {}
+        
+#         # Generate ranges from -5 to 3 with 1/3 steps
+#         start = -5.0
+#         while start < 3:
+#             end = round(start + 1/3, 2)
+#             # Ensure range string format is correct
+#             if start < end:
+#                 range_str = f"{start:.2f}-{end:.2f}"
+#                 lumo_ranges.append(range_str)
+#                 lumo_bins[range_str] = 0
+#                 start = end
+#             else:
+#                 break
+
+#         # Classify molecules into LUMO bins
+#         for molecule in Molecule.objects.all():
+#             lumo = molecule.lumo_energy
+#             if lumo is not None:
+#                 for range_str in lumo_ranges:
+#                     try:
+#                         # Split and convert to float only if range_str is valid
+#                         if '-' in range_str:
+#                             start, end = map(float, range_str.split('-'))
+#                             if start <= lumo < end:
+#                                 lumo_bins[range_str] += 1
+#                                 break
+#                     except ValueError:
+#                         continue
+
+#         # Prepare data for the chart
+#         data = {
+#             "labels": lumo_ranges,
+#             "values": [lumo_bins[range_] for range_ in lumo_ranges],
+#         }
+#         return data
+
+#     def list(self, request):
+#         return Response(self.get_lumo_distribution())
+
+
+
+class DistributionViewSet(viewsets.ViewSet):
+    def generate_ranges(self, start, end, step):
+        """Generate a list of range strings with specified step size."""
+        ranges = []
+        current = start
+        while current < end:
+            next_value = round(current + step, 2)
+            if current < next_value:
+                ranges.append(f"{current:.2f}~{next_value:.2f}")
+            current = next_value
+        return ranges
+
+    def classify_data(self, ranges, data_list, data_field):
+        """
+        Classify data points into specified ranges.
+        :param ranges: List of range strings (e.g., "start-end").
+        :param data_list: Queryset or list of objects with numeric `data_field`.
+        :param data_field: The field name to classify (e.g., 'lumo_energy').
+        :return: Dictionary with counts per range.
+        """
+        bins = defaultdict(int)
+        for obj in data_list:
+            value = getattr(obj, data_field, None)
+            if value is not None:
+                for range_str in ranges:
+                    low, high = map(float, range_str.split('~'))
+                    if low <= value < high:
+                        bins[range_str] += 1
+                        break
+        return bins
+
+    def get_distribution(self, start, end, step, data_field):
+        """
+        Generate distribution data for a specific range and field.
+        :param start: Start of the range.
+        :param end: End of the range.
+        :param step: Step size.
+        :param data_field: The field to classify.
+        :return: Dictionary with `labels` and `values`.
+        """
+        ranges = self.generate_ranges(start, end, step)
+        bins = self.classify_data(ranges, Molecule.objects.all(), data_field)
+        return {
+            "labels": ranges,
+            "values": [bins[range_] for range_ in ranges],
         }
 
-        # Classify molecules into HUMO bins
-        for molecule in Molecule.objects.all():
-            humo = molecule.homo_energy
-            if humo is not None:
-                if -10 <= humo < -5:
-                    humo_bins["-10--5"] += 1
-                elif humo < 0:
-                    humo_bins["-5-0"] += 1
-                elif humo < 5:
-                    humo_bins["0-5"] += 1
-                elif humo < 10:
-                    humo_bins["5-10"] += 1
-                elif humo < 15:
-                    humo_bins["10-15"] += 1
-                else:
-                    humo_bins["15+"] += 1
 
-        # Prepare data for the chart
-        data = {
-            "labels": humo_ranges,
-            "values": [humo_bins[range_] for range_ in humo_ranges],
-        }
-        return data
-
+class HUMODistributionViewSet(DistributionViewSet):
     def list(self, request):
-        return Response(self.get_humo_distribution())
+        # Define range for HUMO distribution (-14 to -3)
+        data = self.get_distribution(start=-14.0, end=-3.0, step=1/3, data_field="homo_energy")
+        return Response(data)
 
 
-class LUMODistributionViewSet(viewsets.ViewSet):
-    def get_lumo_distribution(self):
-        # Define LUMO ranges
-        lumo_ranges = ["-10--5", "-5-0", "0-5", "5-10", "10-15", "15+"]
-
-        lumo_bins = {
-            "-10--5": 0,
-            "-5-0": 0,
-            "0-5": 0,
-            "5-10": 0,
-            "10-15": 0,
-            "15+": 0,
-        }
-
-        # Classify molecules into LUMO bins
-        for molecule in Molecule.objects.all():
-            lumo = molecule.lumo_energy
-            if lumo is not None:
-                if -10 <= lumo < -5:
-                    lumo_bins["-10--5"] += 1
-                elif lumo < 0:
-                    lumo_bins["-5-0"] += 1
-                elif lumo < 5:
-                    lumo_bins["0-5"] += 1
-                elif lumo < 10:
-                    lumo_bins["5-10"] += 1
-                elif lumo < 15:
-                    lumo_bins["10-15"] += 1
-                else:
-                    lumo_bins["15+"] += 1
-
-        # Prepare data for the chart
-        data = {
-            "labels": lumo_ranges,
-            "values": [lumo_bins[range_] for range_ in lumo_ranges],
-        }
-        return data
-
+class LUMODistributionViewSet(DistributionViewSet):
     def list(self, request):
-        return Response(self.get_lumo_distribution())
+        # Define range for LUMO distribution (-5 to 3)
+        data = self.get_distribution(start=-5.0, end=3.0, step=1/3, data_field="lumo_energy")
+        return Response(data)
