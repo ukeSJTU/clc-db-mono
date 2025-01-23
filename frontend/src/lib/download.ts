@@ -9,210 +9,211 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
 const escapeCsvField = (field: string): string => {
-    if (field.includes(",") || field.includes('"') || field.includes("\n")) {
-        return `"${field.replace(/"/g, '""')}"`;
-    }
-    return field;
+  if (field.includes(",") || field.includes('"') || field.includes("\n")) {
+    return `"${field.replace(/"/g, '""')}"`;
+  }
+  return field;
 };
 
 const generateCsvContent = (molecules: MoleculeProps[]) => {
-    const csvHeaders = [
-        "Name",
-        "CAS ID",
-        "PubChem CID",
-        "Category",
-        "URL",
-        "PubChem URL",
-        "SMILES",
-        "Chirality",
-        "Description",
-        "SMILES IUPAC",
-        "Molecule Formula",
-        "Molecular Weight",
-        "Heavy Atom Count",
-        "Ring Count",
-        "Hydrogen Bond Acceptor Count",
-        "Hydrogen Bond Donor Count",
-        "Rotatable Bond Count",
+  const csvHeaders = [
+    "Name",
+    "CAS ID",
+    "PubChem CID",
+    "Category",
+    "URL",
+    "PubChem URL",
+    "SMILES",
+    "Chirality",
+    "Description",
+    "SMILES IUPAC",
+    "Molecule Formula",
+    "Molecular Weight",
+    "Heavy Atom Count",
+    "Ring Count",
+    "Hydrogen Bond Acceptor Count",
+    "Hydrogen Bond Donor Count",
+    "Rotatable Bond Count",
+    // TODO: add new properties here
+  ];
+
+  const csvRows = molecules.map((molecule) => {
+    const categories =
+      molecule.category?.map((type) => type.name).join(", ") || "";
+    const chiralities =
+      molecule.chirality?.map((type) => type.name).join(", ") || "";
+    return [
+      escapeCsvField(molecule.name || ""),
+      escapeCsvField(molecule.cas_id || ""),
+      escapeCsvField(molecule.pubchem_cid || ""),
+      escapeCsvField(categories),
+      escapeCsvField(molecule.url || ""),
+      escapeCsvField(molecule.pubchem_url || ""),
+      escapeCsvField(molecule.smiles || ""),
+      escapeCsvField(chiralities),
+      escapeCsvField(molecule.description || ""),
+      escapeCsvField(molecule.smiles_iupac || ""),
+      escapeCsvField(molecule.molecule_formula || ""),
+      molecule.molecular_weight?.toFixed(3) || "",
+      molecule.heavy_atom_count?.toString() || "",
+      molecule.ring_count?.toString() || "",
+      molecule.hydrogen_bond_acceptor_count?.toString() || "",
+      molecule.hydrogen_bond_donor_count?.toString() || "",
+      molecule.rotatable_bond_count?.toString() || "",
     ];
+  });
 
-    const csvRows = molecules.map((molecule) => {
-        const categories =
-            molecule.category?.map((type) => type.name).join(", ") || "";
-        const chiralities =
-            molecule.chirality?.map((type) => type.name).join(", ") || "";
-        return [
-            escapeCsvField(molecule.name || ""),
-            escapeCsvField(molecule.cas_id || ""),
-            escapeCsvField(molecule.pubchem_cid || ""),
-            escapeCsvField(categories),
-            escapeCsvField(molecule.url || ""),
-            escapeCsvField(molecule.pubchem_url || ""),
-            escapeCsvField(molecule.smiles || ""),
-            escapeCsvField(chiralities),
-            escapeCsvField(molecule.description || ""),
-            escapeCsvField(molecule.smiles_iupac || ""),
-            escapeCsvField(molecule.molecule_formula || ""),
-            molecule.molecular_weight?.toFixed(3) || "",
-            molecule.heavy_atom_count?.toString() || "",
-            molecule.ring_count?.toString() || "",
-            molecule.hydrogen_bond_acceptor_count?.toString() || "",
-            molecule.hydrogen_bond_donor_count?.toString() || "",
-            molecule.rotatable_bond_count?.toString() || "",
-        ];
-    });
-
-    return [csvHeaders, ...csvRows].map((row) => row.join(",")).join("\n");
+  return [csvHeaders, ...csvRows].map((row) => row.join(",")).join("\n");
 };
 
 const downloadCsv = (molecules: MoleculeProps[]) => {
-    const csvContent = generateCsvContent(molecules);
-    const defaultFileName =
-        molecules.length === 1 ? molecules[0].cas_id : "molecules";
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, `${defaultFileName}.csv`);
+  const csvContent = generateCsvContent(molecules);
+  const defaultFileName =
+    molecules.length === 1 ? molecules[0].cas_id : "molecules";
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  saveAs(blob, `${defaultFileName}.csv`);
 };
 
 const downloadSdf = async (
-    sdfFiles: string[],
-    defaultFileName: string = "molecules_sdf"
+  sdfFiles: string[],
+  defaultFileName: string = "molecules_sdf"
 ): Promise<{ success: boolean; missingFiles: string[] }> => {
-    const zip = new JSZip();
-    let missingFiles = [];
+  const zip = new JSZip();
+  let missingFiles = [];
 
-    for (const [index, sdfUrl] of sdfFiles.entries()) {
-        try {
-            const response = await fetch(sdfUrl);
-            if (!response.ok) {
-                missingFiles.push(`Missing SDF: ${sdfUrl}`);
-                continue;
-            }
-            const text = await response.text();
-            zip.file(`molecule_${index + 1}.sdf`, text);
-        } catch {
-            missingFiles.push(`Missing SDF: ${sdfUrl}`);
-        }
+  for (const [index, sdfUrl] of sdfFiles.entries()) {
+    try {
+      const response = await fetch(sdfUrl);
+      if (!response.ok) {
+        missingFiles.push(`Missing SDF: ${sdfUrl}`);
+        continue;
+      }
+      const text = await response.text();
+      zip.file(`molecule_${index + 1}.sdf`, text);
+    } catch {
+      missingFiles.push(`Missing SDF: ${sdfUrl}`);
     }
+  }
 
-    // Add a missing report if there are any missing files
-    if (missingFiles.length > 0) {
-        zip.file("missing_files.txt", missingFiles.join("\n"));
-    }
+  // Add a missing report if there are any missing files
+  if (missingFiles.length > 0) {
+    zip.file("missing_files.txt", missingFiles.join("\n"));
+  }
 
-    const blob = await zip.generateAsync({ type: "blob" });
-    saveAs(blob, `${defaultFileName}.zip`);
+  const blob = await zip.generateAsync({ type: "blob" });
+  saveAs(blob, `${defaultFileName}.zip`);
 
-    return { success: missingFiles.length === 0, missingFiles };
+  return { success: missingFiles.length === 0, missingFiles };
 };
 
 const downloadBoth = async (
-    molecules: MoleculeProps[],
-    sdfFiles: string[]
+  molecules: MoleculeProps[],
+  sdfFiles: string[]
 ): Promise<{ success: boolean; missingFiles: string[] }> => {
-    const zip = new JSZip();
-    let missingFiles = [];
+  const zip = new JSZip();
+  let missingFiles = [];
 
-    // Use CAS ID of the first molecule or a generic name if more than one
-    const defaultFileName =
-        molecules.length === 1 ? molecules[0].cas_id : "molecules_data";
+  // Use CAS ID of the first molecule or a generic name if more than one
+  const defaultFileName =
+    molecules.length === 1 ? molecules[0].cas_id : "molecules_data";
 
-    // Add CSV file
-    const csvContent = generateCsvContent(molecules);
-    zip.file(`${defaultFileName}.csv`, csvContent);
+  // Add CSV file
+  const csvContent = generateCsvContent(molecules);
+  zip.file(`${defaultFileName}.csv`, csvContent);
 
-    // Add SDF files
-    for (const [index, sdfUrl] of sdfFiles.entries()) {
-        try {
-            const response = await fetch(sdfUrl);
-            if (!response.ok) {
-                missingFiles.push(`Missing SDF: ${sdfUrl}`);
-                continue;
-            }
-            const text = await response.text();
-            zip.file(`${molecules[index].cas_id}.sdf`, text);
-        } catch {
-            missingFiles.push(`Missing SDF: ${sdfUrl}`);
-        }
+  // Add SDF files
+  for (const [index, sdfUrl] of sdfFiles.entries()) {
+    try {
+      const response = await fetch(sdfUrl);
+      if (!response.ok) {
+        missingFiles.push(`Missing SDF: ${sdfUrl}`);
+        continue;
+      }
+      const text = await response.text();
+      zip.file(`${molecules[index].cas_id}.sdf`, text);
+    } catch {
+      missingFiles.push(`Missing SDF: ${sdfUrl}`);
     }
+  }
 
-    // Add a missing report if there are any missing files
-    if (missingFiles.length > 0) {
-        zip.file("missing_files.txt", missingFiles.join("\n"));
-    }
+  // Add a missing report if there are any missing files
+  if (missingFiles.length > 0) {
+    zip.file("missing_files.txt", missingFiles.join("\n"));
+  }
 
-    const blob = await zip.generateAsync({ type: "blob" });
-    saveAs(blob, `${defaultFileName}.zip`);
+  const blob = await zip.generateAsync({ type: "blob" });
+  saveAs(blob, `${defaultFileName}.zip`);
 
-    return { success: missingFiles.length === 0, missingFiles };
+  return { success: missingFiles.length === 0, missingFiles };
 };
 
 const downloadChargeFiles = async (
-    type: "mulliken" | "hirshfeld",
-    molecules: MoleculeProps[]
+  type: "mulliken" | "hirshfeld",
+  molecules: MoleculeProps[]
 ): Promise<{ success: boolean; missingFiles: string[] }> => {
-    const zip = new JSZip();
-    let missingFiles = [];
-    const defaultFileName =
-        molecules.length === 1 ? molecules[0].cas_id : "molecules";
+  const zip = new JSZip();
+  let missingFiles = [];
+  const defaultFileName =
+    molecules.length === 1 ? molecules[0].cas_id : "molecules";
 
-    for (const molecule of molecules) {
-        const url = `${process.env.NEXT_PUBLIC_STATIC}/${type}/${molecule.cas_id}.chg`;
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                missingFiles.push(`Missing ${type} file: ${url}`);
-                continue;
-            }
-            const text = await response.text();
-            zip.file(`${molecule.cas_id}-${type}.chg`, text);
-        } catch {
-            missingFiles.push(`Missing ${type} file: ${url}`);
-        }
+  for (const molecule of molecules) {
+    const url = `${process.env.NEXT_PUBLIC_STATIC}/${type}/${molecule.cas_id}.chg`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        missingFiles.push(`Missing ${type} file: ${url}`);
+        continue;
+      }
+      const text = await response.text();
+      zip.file(`${molecule.cas_id}-${type}.chg`, text);
+    } catch {
+      missingFiles.push(`Missing ${type} file: ${url}`);
     }
+  }
 
-    if (missingFiles.length > 0) {
-        zip.file("missing_files.txt", missingFiles.join("\n"));
-    }
+  if (missingFiles.length > 0) {
+    zip.file("missing_files.txt", missingFiles.join("\n"));
+  }
 
-    const blob = await zip.generateAsync({ type: "blob" });
-    saveAs(blob, `${defaultFileName}-${type}.zip`);
+  const blob = await zip.generateAsync({ type: "blob" });
+  saveAs(blob, `${defaultFileName}-${type}.zip`);
 
-    return { success: missingFiles.length === 0, missingFiles };
+  return { success: missingFiles.length === 0, missingFiles };
 };
 
 const downloadFiles = async (
-    type: string,
-    molecules: MoleculeProps[],
-    sdfFiles: string[]
+  type: string,
+  molecules: MoleculeProps[],
+  sdfFiles: string[]
 ): Promise<{ success: boolean; missingFiles: string[] }> => {
-    const defaultFileName =
-        molecules.length === 1 ? molecules[0].cas_id : "molecules";
+  const defaultFileName =
+    molecules.length === 1 ? molecules[0].cas_id : "molecules";
 
-    try {
-        switch (type) {
-            case "csv":
-                await downloadCsv(molecules);
-                return { success: true, missingFiles: [] };
-            case "sdf":
-                const { success, missingFiles } = await downloadSdf(
-                    sdfFiles,
-                    defaultFileName
-                );
-                return { success, missingFiles };
-            case "zip":
-                const result = await downloadBoth(molecules, sdfFiles);
-                return result;
-            case "mulliken":
-                return await downloadChargeFiles("mulliken", molecules);
-            case "hirshfeld":
-                return await downloadChargeFiles("hirshfeld", molecules);
-            default:
-                console.error("Unknown download type:", type);
-                return { success: false, missingFiles: [] };
-        }
-    } catch (error) {
-        console.error("Download error:", error);
+  try {
+    switch (type) {
+      case "csv":
+        await downloadCsv(molecules);
+        return { success: true, missingFiles: [] };
+      case "sdf":
+        const { success, missingFiles } = await downloadSdf(
+          sdfFiles,
+          defaultFileName
+        );
+        return { success, missingFiles };
+      case "zip":
+        const result = await downloadBoth(molecules, sdfFiles);
+        return result;
+      case "mulliken":
+        return await downloadChargeFiles("mulliken", molecules);
+      case "hirshfeld":
+        return await downloadChargeFiles("hirshfeld", molecules);
+      default:
+        console.error("Unknown download type:", type);
         return { success: false, missingFiles: [] };
     }
+  } catch (error) {
+    console.error("Download error:", error);
+    return { success: false, missingFiles: [] };
+  }
 };
 export default downloadFiles;
