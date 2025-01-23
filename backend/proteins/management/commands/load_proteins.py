@@ -109,32 +109,34 @@ class Command(BaseCommand):
                                 else None
                             ),
                             "zero_point_correction": float(
-                                row.get("Zero Point Correction", 0)
+                                row.get("Zero-point correction", 0)
                             ),
                             "thermal_correction_energy": float(
-                                row.get("Thermal Correction Energy", 0)
+                                row.get("Thermal correction to Energy", 0)
                             ),
                             "thermal_correction_enthalpy": float(
-                                row.get("Thermal Correction Enthalpy", 0)
+                                row.get("Thermal correction to Enthalpy", 0)
                             ),
                             "thermal_correction_gibbs": float(
-                                row.get("Thermal Correction Gibbs", 0)
+                                row.get("Thermal correction to Gibbs Free Energy", 0)
                             ),
                             "sum_electronic_zero_point": float(
-                                row.get("Sum Electronic Zero Point", 0)
+                                row.get("Sum of electronic and zero-point Energies", 0)
                             ),
                             "sum_electronic_thermal_energy": float(
-                                row.get("Sum Electronic Thermal Energy", 0)
+                                row.get("Sum of electronic and thermal Energies", 0)
                             ),
                             "sum_electronic_thermal_enthalpy": float(
-                                row.get("Sum Electronic Thermal Enthalpy", 0)
+                                row.get("Sum of electronic and thermal Enthalpies", 0)
                             ),
                             "sum_electronic_thermal_free_energy": float(
-                                row.get("Sum Electronic Thermal Free Energy", 0)
+                                row.get(
+                                    "Sum of electronic and thermal Free Energies", 0
+                                )
                             ),
-                            "homo_energy": float(row.get("HOMO Energy", 0)),
-                            "lumo_energy": float(row.get("LUMO Energy", 0)),
-                            "homo_lumo_gap": float(row.get("HOMO-LUMO Gap", 0)),
+                            "homo_energy": float(row.get("HOMO Energy (eV)", 0)),
+                            "lumo_energy": float(row.get("LUMO Energy (eV)", 0)),
+                            "homo_lumo_gap": float(row.get("HOMO-LUMO Gap (eV)", 0)),
                         },
                     )
 
