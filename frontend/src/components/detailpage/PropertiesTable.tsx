@@ -34,9 +34,7 @@ const MoleculePropertiesTable = ({ molecule }: { molecule: MoleculeProps }) => {
             <td className="py-2">{molecule.InChIKey || "N/A"}</td>
           </tr>
           <tr>
-            <td className="py-2 pr-4 fon</small>t-semibold">
-              Molecular Formula
-            </td>
+            <td className="py-2 pr-4 font-semibold">Molecular Formula</td>
             <td className="py-2">
               <MoleculeFormulaSpan formula={molecule.molecule_formula} />
             </td>
@@ -71,12 +69,15 @@ const MoleculePropertiesTable = ({ molecule }: { molecule: MoleculeProps }) => {
               {formatCount(molecule.rotatable_bond_count)}
             </td>
           </tr>
-
-          <div className="mb-4">
-            <small className="text-xs text-gray-500 dark:text-gray-400 block mt-1">
-              Note: the following properties are calculated by DFT.
-            </small>
-          </div>
+        </tbody>
+      </table>
+      <div className="mb-4">
+        <small className="text-xs text-gray-500 dark:text-gray-400">
+          Note: the following properties are calculated by DFT.
+        </small>
+      </div>
+      <table className="w-full table-auto">
+        <tbody>
           <tr>
             <td className="py-2 pr-4 font-semibold">Zero Point Correction</td>
             <td className="py-2">
@@ -85,7 +86,7 @@ const MoleculePropertiesTable = ({ molecule }: { molecule: MoleculeProps }) => {
           </tr>
           <tr>
             <td className="py-2 pr-4 font-semibold">
-              Thermal Correction Energy
+              Thermal Correction to Energy
             </td>
             <td className="py-2">
               {formatCount(molecule.thermal_correction_energy)}
@@ -93,7 +94,7 @@ const MoleculePropertiesTable = ({ molecule }: { molecule: MoleculeProps }) => {
           </tr>
           <tr>
             <td className="py-2 pr-4 font-semibold">
-              Thermal Correction Enthalpy
+              Thermal Correction to Enthalpy
             </td>
             <td className="py-2">
               {formatCount(molecule.thermal_correction_enthalpy)}
@@ -101,7 +102,7 @@ const MoleculePropertiesTable = ({ molecule }: { molecule: MoleculeProps }) => {
           </tr>
           <tr>
             <td className="py-2 pr-4 font-semibold">
-              Thermal Correction Gibbs
+              Thermal Correction to Gibbs Free Energy
             </td>
             <td className="py-2">
               {formatCount(molecule.thermal_correction_gibbs)}
@@ -109,7 +110,7 @@ const MoleculePropertiesTable = ({ molecule }: { molecule: MoleculeProps }) => {
           </tr>
           <tr>
             <td className="py-2 pr-4 font-semibold">
-              Sum Electronic + Zero Point
+              Sum of electronic and zero-point Energies
             </td>
             <td className="py-2">
               {formatCount(molecule.sum_electronic_zero_point)}
@@ -117,7 +118,7 @@ const MoleculePropertiesTable = ({ molecule }: { molecule: MoleculeProps }) => {
           </tr>
           <tr>
             <td className="py-2 pr-4 font-semibold">
-              Sum Electronic + Thermal Energy
+              Sum of electronic and thermal Energies
             </td>
             <td className="py-2">
               {formatCount(molecule.sum_electronic_thermal_energy)}
@@ -125,7 +126,7 @@ const MoleculePropertiesTable = ({ molecule }: { molecule: MoleculeProps }) => {
           </tr>
           <tr>
             <td className="py-2 pr-4 font-semibold">
-              Sum Electronic + Thermal Enthalpy
+              Sum of electronic and thermal Enthalpies
             </td>
             <td className="py-2">
               {formatCount(molecule.sum_electronic_thermal_enthalpy)}
@@ -133,22 +134,22 @@ const MoleculePropertiesTable = ({ molecule }: { molecule: MoleculeProps }) => {
           </tr>
           <tr>
             <td className="py-2 pr-4 font-semibold">
-              Sum Electronic + Thermal Free Energy
+              Sum of electronic and thermal Free Energies
             </td>
             <td className="py-2">
               {formatCount(molecule.sum_electronic_thermal_free_energy)}
             </td>
           </tr>
           <tr>
-            <td className="py-2 pr-4 font-semibold">HOMO Energy</td>
+            <td className="py-2 pr-4 font-semibold">HOMO Energy (eV)</td>
             <td className="py-2">{formatCount(molecule.homo_energy)}</td>
           </tr>
           <tr>
-            <td className="py-2 pr-4 font-semibold">LUMO Energy</td>
+            <td className="py-2 pr-4 font-semibold">LUMO Energy (eV)</td>
             <td className="py-2">{formatCount(molecule.lumo_energy)}</td>
           </tr>
           <tr>
-            <td className="py-2 pr-4 font-semibold">HOMO-LUMO Gap</td>
+            <td className="py-2 pr-4 font-semibold">HOMO-LUMO Gap (eV)</td>
             <td className="py-2">{formatCount(molecule.homo_lumo_gap)}</td>
           </tr>
         </tbody>
