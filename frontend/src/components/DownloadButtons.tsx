@@ -16,7 +16,7 @@ import downloadFiles from "@/lib/download";
 import { MoleculeProps } from "@/types/molecule";
 import { DownloadIcon } from "lucide-react";
 import { FileTextIcon, ArchiveIcon } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 // BaseDownloadButton is a simpler version of DownloadButton that doesn't include a dropdown
 interface BaseDownloadButtonProps {
