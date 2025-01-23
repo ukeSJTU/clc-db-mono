@@ -21,6 +21,13 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from proteins.views import OverviewViewSet, SearchViewSet
+from stats.views import (
+    StatisticsViewSet,
+    WeightDistributionViewSet,
+    ChiralityDistributionViewSet,
+    CategoryDistributionViewSet,
+    CategoryViewSet,
+)
 
 router = DefaultRouter()
 
@@ -28,6 +35,16 @@ router.register(r"overview/card", OverviewViewSet, basename="overview-card")
 router.register(r"overview/table", OverviewViewSet, basename="overview-table")
 
 router.register(r"search/molecules", SearchViewSet, basename="search")
+
+router.register(r"statistics", StatisticsViewSet, basename="statistics")
+router.register(r"stats/weights", WeightDistributionViewSet, basename="stats-weights")
+router.register(
+    r"stats/chirality", ChiralityDistributionViewSet, basename="stats-chirality"
+)
+router.register(
+    r"stats/category", CategoryDistributionViewSet, basename="stats-category"
+)
+router.register(r"categories", CategoryViewSet, basename="category")
 
 
 urlpatterns = [path("admin/", admin.site.urls), path("api/", include(router.urls))]
