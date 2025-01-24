@@ -3,6 +3,12 @@ from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 
+from .utils import perform_clustering
+
+import shutil
+import time
+import os
+
 # Create your views here.
 class SDFUploaderViewSet(viewsets.ViewSet):
     def create(self, request):
