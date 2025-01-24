@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import api from "@/utils/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,21 +20,70 @@ export default function VectorPageClient() {
   const [searchResult, setSearchResult] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  const handleSearch = () => {
-    // Placeholder for FAISS search functionality
-    setSearchResult(`Performed FAISS search for SMILES: ${smiles}`);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSearch = async () => {
+    if (!smiles) {
+      setError("Please enter a SMILES string");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const { data } = await api.post("/cluster/vector/search/", {
+        type: "smiles",
+        query: smiles,
+      });
+
+      setSearchResult(JSON.stringify(data.results, null, 2));
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
+      setSearchResult("");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Placeholder for SDF file upload and search functionality
-      setSearchResult(`Performed FAISS search for file: ${file.name}`);
+    if (!file) return;
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const { data } = await api.post("/cluster/vector/search", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setSearchResult(JSON.stringify(data.results, null, 2));
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
+      setSearchResult("");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCluster = () => {
-    // Placeholder for clustering functionality
     console.log(`Performed clustering for category: ${selectedCategory}`);
   };
 
@@ -79,7 +129,11 @@ export default function VectorPageClient() {
               />
             </div>
 
-            <Button onClick={handleSearch}>Search</Button>
+            <Button onClick={handleSearch} disabled={isLoading}>
+              {isLoading ? "Searching..." : "Search"}
+            </Button>
+
+            {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
 
             <div>
               <label

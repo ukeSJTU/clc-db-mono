@@ -30,7 +30,7 @@ from stats.views import (
     HUMODistributionViewSet,
     LUMODistributionViewSet,
 )
-from cluster.views import SDFUploaderViewSet, ClusteringViewSet
+from cluster.views import SDFUploaderViewSet, ClusteringViewSet, VectorSearchViewSet
 from files.views import DownloadViewSet
 
 router = DefaultRouter()
@@ -57,5 +57,9 @@ router.register(r"cluster/process", ClusteringViewSet, basename="cluster")
 
 router.register(r"download/molecules", DownloadViewSet, basename="molecule")
 router.register(r"download/categories", DownloadViewSet, basename="class")
+
+router.register(r"cluster/vector/search", VectorSearchViewSet, basename="vector-search")
+# router.register(r"cluster/vector/cluster", RefinedClusterViewSet, basename="refined-cluster")
+
 
 urlpatterns = [path("admin/", admin.site.urls), path("api/", include(router.urls))]

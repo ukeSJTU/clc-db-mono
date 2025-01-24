@@ -2,14 +2,89 @@ from django.shortcuts import render
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from .utils import perform_clustering
-
+from rdkit import Chem
+from rdkit.Chem import AllChem
+from e3fp.pipeline import fprints_from_sdf
+import numpy as np
+from faiss import IndexFlatIP
+import os
 import shutil
 import time
-import os
 
-# Create your views here.
+class VectorSearchViewSet(viewsets.ViewSet):
+    def get_morgan_fingerprint(self, smiles, radius=2, bits=1024):
+        mol = Chem.MolFromSmiles(smiles)
+        fp = AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=bits)
+        return np.array(fp)
+
+    def get_e3fp_fingerprint(self, sdf_file, bits=1024, radius_multiplier=2, rdkit_invariants=True):
+        fprint_params = {'bits': bits, 'radius_multiplier': radius_multiplier, 'rdkit_invariants': rdkit_invariants}
+        fprint = fprints_from_sdf(sdf_file, fprint_params=fprint_params)
+        return np.array(fprint)
+
+    @action(detail=False, methods=['post'])
+    def search(self, request):
+        search_type = request.data.get('type')
+        
+        if search_type == 'smiles':
+            smiles = request.data.get('query')
+            if not smiles:
+                return Response({'error': 'SMILES string is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                query = self.get_morgan_fingerprint(smiles)
+                index = IndexFlatIP(1024)
+                embeddings = np.load('./data/embeddings_morgan.npy')
+                index.add(embeddings)
+                
+                distances, indices = index.search(query.reshape(1, -1), 10)
+                results = [{'index': int(idx), 'distance': float(dist)} 
+                          for idx, dist in zip(indices[0], distances[0])]
+                
+                return Response({'results': results}, status=status.HTTP_200_OK)
+                
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+        elif search_type == 'file':
+            file = request.FILES.get('file')
+            if not file:
+                return Response({'error': 'File is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                # Save uploaded file temporarily
+                temp_dir = f'temp_{time.time()}'
+                os.makedirs(temp_dir, exist_ok=True)
+                file_path = os.path.join(temp_dir, file.name)
+                with open(file_path, 'wb+') as destination:
+                    for chunk in file.chunks():
+                        destination.write(chunk)
+                
+                query = self.get_e3fp_fingerprint(file_path)
+                index = IndexFlatIP(1024)
+                embeddings = np.load('./data/embeddings_e3fp.npy')
+                index.add(embeddings)
+                
+                distances, indices = index.search(query.reshape(1, -1), 10)
+                results = [{'index': int(idx), 'distance': float(dist)} 
+                          for idx, dist in zip(indices[0], distances[0])]
+                
+                # Clean up temp files
+                shutil.rmtree(temp_dir)
+                
+                return Response({'results': results}, status=status.HTTP_200_OK)
+                
+            except Exception as e:
+                if os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+        else:
+            return Response({'error': 'Invalid search type'}, status=status.HTTP_400_BAD_REQUEST)
+
 class SDFUploaderViewSet(viewsets.ViewSet):
     def create(self, request):
         uploaded_files = request.FILES.getlist("files")
