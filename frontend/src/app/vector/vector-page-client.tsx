@@ -16,6 +16,7 @@ import {
 
 export default function VectorPageClient() {
   const [activeTab, setActiveTab] = useState("faiss");
+  const [searchType, setSearchType] = useState<"smiles" | "file">("smiles");
   const [smiles, setSmiles] = useState("");
   const [searchResult, setSearchResult] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -31,6 +32,7 @@ export default function VectorPageClient() {
 
     setIsLoading(true);
     setError("");
+    setSearchResult("");
 
     try {
       const { data } = await api.post("/cluster/vector/search/search/", {
@@ -38,14 +40,26 @@ export default function VectorPageClient() {
         query: smiles,
       });
 
-      setSearchResult(JSON.stringify(data.results, null, 2));
+      if (data.results && data.results.length > 0) {
+        const formattedResults = data.results
+          .map(
+            (result: any, index: number) =>
+              `#${index + 1}: Index=${result.index}, Similarity=${(
+                1 - result.distance
+              ).toFixed(4)}`
+          )
+          .join("\n");
+
+        setSearchResult(formattedResults);
+      } else {
+        setSearchResult("No results found");
+      }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
         setError("An unknown error occurred");
       }
-      setSearchResult("");
     } finally {
       setIsLoading(false);
     }
@@ -55,17 +69,22 @@ export default function VectorPageClient() {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setError("Please select a valid SDF file");
+      return;
+    }
 
     setIsLoading(true);
     setError("");
+    setSearchResult("");
 
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("type", "file");
 
       const { data } = await api.post(
-        "/cluster/vector/search/search",
+        "/cluster/vector/search/search/",
         formData,
         {
           headers: {
@@ -74,14 +93,26 @@ export default function VectorPageClient() {
         }
       );
 
-      setSearchResult(JSON.stringify(data.results, null, 2));
+      if (data.results && data.results.length > 0) {
+        const formattedResults = data.results
+          .map(
+            (result: any, index: number) =>
+              `#${index + 1}: Index=${result.index}, Similarity=${(
+                1 - result.distance
+              ).toFixed(4)}`
+          )
+          .join("\n");
+
+        setSearchResult(formattedResults);
+      } else {
+        setSearchResult("No results found");
+      }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
         setError("An unknown error occurred");
       }
-      setSearchResult("");
     } finally {
       setIsLoading(false);
     }
@@ -103,35 +134,68 @@ export default function VectorPageClient() {
 
         <TabsContent value="faiss">
           <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="smiles"
-                className="block text-sm font-medium text-gray-700"
+            <div className="flex space-x-4 mb-4">
+              <Button
+                variant={searchType === "smiles" ? "default" : "outline"}
+                onClick={() => setSearchType("smiles")}
               >
                 Enter SMILES
-              </label>
-              <Input
-                id="smiles"
-                value={smiles}
-                onChange={(e) => setSmiles(e.target.value)}
-                placeholder="Enter SMILES string"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="sdf-upload"
-                className="block text-sm font-medium text-gray-700"
+              </Button>
+              <Button
+                variant={searchType === "file" ? "default" : "outline"}
+                onClick={() => setSearchType("file")}
               >
                 Upload SDF File
-              </label>
-              <Input
-                id="sdf-upload"
-                type="file"
-                onChange={handleFileUpload}
-                accept=".sdf"
-              />
+              </Button>
             </div>
+
+            {searchType === "smiles" && (
+              <div>
+                <label
+                  htmlFor="smiles"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Enter SMILES String
+                </label>
+                <Input
+                  id="smiles"
+                  value={smiles}
+                  onChange={(e) => setSmiles(e.target.value)}
+                  placeholder="e.g. C1=CC=CC=C1"
+                  className="w-full"
+                />
+                {error && searchType === "smiles" && !smiles && (
+                  <p className="text-sm text-red-500 mt-2">
+                    Please enter a valid SMILES string
+                  </p>
+                )}
+              </div>
+            )}
+
+            {searchType === "file" && (
+              <div>
+                <label
+                  htmlFor="sdf-upload"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Upload SDF File
+                </label>
+                <div className="flex items-center space-x-4">
+                  <Input
+                    id="sdf-upload"
+                    type="file"
+                    onChange={handleFileUpload}
+                    accept=".sdf"
+                    className="w-full"
+                  />
+                </div>
+                {error && searchType === "file" && (
+                  <p className="text-sm text-red-500 mt-2">
+                    Please select a valid SDF file
+                  </p>
+                )}
+              </div>
+            )}
 
             <Button onClick={handleSearch} disabled={isLoading}>
               {isLoading ? "Searching..." : "Search"}

@@ -1,8 +1,8 @@
 from django.shortcuts import render
-
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .utils import perform_clustering
 from rdkit import Chem
@@ -27,13 +27,22 @@ class VectorSearchViewSet(viewsets.ViewSet):
         fprint_params = {'bits': bits, 'radius_multiplier': radius_multiplier, 'rdkit_invariants': rdkit_invariants}
         fprint = fprints_from_sdf(sdf_file, fprint_params=fprint_params)
         print(f"Generated fingerprint shape: {np.array(fprint).shape}")
-        return np.array(fprint)
+        vector = np.zeros(bits, dtype=np.int8)      
+        vector[fprint[0].indices] = 1
+        # return np.array(fprint)
+        return vector
+
 
     @action(detail=False, methods=['post'])
     def search(self, request):
         print(f"Received search request with data: {request.data}")
         search_type = request.data.get('type')
         print(f"Search type: {search_type}")
+        
+        # Validate search type
+        if search_type not in ['smiles', 'file']:
+            return Response({'error': 'Invalid search type. Must be "smiles" or "file"'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
         
         if search_type == 'smiles':
             smiles = request.data.get('query')
@@ -83,7 +92,7 @@ class VectorSearchViewSet(viewsets.ViewSet):
                 
                 query = self.get_e3fp_fingerprint(file_path)
                 print("Loading embeddings file...")
-                embeddings = np.load('../data/embeddings_e3fp.npy')
+                embeddings = np.load('./data/embeddings_e3fp.npy')
                 print(f"Embeddings shape: {embeddings.shape}")
                 
                 index = IndexFlatIP(1024)
