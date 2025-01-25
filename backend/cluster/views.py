@@ -16,73 +16,99 @@ import time
 
 class VectorSearchViewSet(viewsets.ViewSet):
     def get_morgan_fingerprint(self, smiles, radius=2, bits=1024):
+        print(f"Generating Morgan fingerprint for SMILES: {smiles}")
         mol = Chem.MolFromSmiles(smiles)
         fp = AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=bits)
+        print(f"Generated fingerprint shape: {np.array(fp).shape}")
         return np.array(fp)
 
     def get_e3fp_fingerprint(self, sdf_file, bits=1024, radius_multiplier=2, rdkit_invariants=True):
+        print(f"Generating E3FP fingerprint for file: {sdf_file}")
         fprint_params = {'bits': bits, 'radius_multiplier': radius_multiplier, 'rdkit_invariants': rdkit_invariants}
         fprint = fprints_from_sdf(sdf_file, fprint_params=fprint_params)
+        print(f"Generated fingerprint shape: {np.array(fprint).shape}")
         return np.array(fprint)
 
     @action(detail=False, methods=['post'])
     def search(self, request):
+        print(f"Received search request with data: {request.data}")
         search_type = request.data.get('type')
+        print(f"Search type: {search_type}")
         
         if search_type == 'smiles':
             smiles = request.data.get('query')
+            print(f"Processing SMILES query: {smiles}")
             if not smiles:
                 return Response({'error': 'SMILES string is required'}, status=status.HTTP_400_BAD_REQUEST)
             
             try:
                 query = self.get_morgan_fingerprint(smiles)
-                index = IndexFlatIP(1024)
+                print("Loading embeddings file...")
                 embeddings = np.load('./data/embeddings_morgan.npy')
+                print(f"Embeddings shape: {embeddings.shape}")
+                
+                index = IndexFlatIP(1024)
+                print(1)
                 index.add(embeddings)
+                print("Added embeddings to index")
                 
                 distances, indices = index.search(query.reshape(1, -1), 10)
+                print(f"Search results - indices: {indices}, distances: {distances}")
+                
                 results = [{'index': int(idx), 'distance': float(dist)} 
                           for idx, dist in zip(indices[0], distances[0])]
                 
                 return Response({'results': results}, status=status.HTTP_200_OK)
                 
             except Exception as e:
+                print(f"Error in SMILES search: {str(e)}")
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
         elif search_type == 'file':
             file = request.FILES.get('file')
+            print(f"Processing file upload: {file.name if file else 'No file'}")
             if not file:
                 return Response({'error': 'File is required'}, status=status.HTTP_400_BAD_REQUEST)
             
             try:
-                # Save uploaded file temporarily
                 temp_dir = f'temp_{time.time()}'
+                print(f"Creating temp directory: {temp_dir}")
                 os.makedirs(temp_dir, exist_ok=True)
                 file_path = os.path.join(temp_dir, file.name)
+                
                 with open(file_path, 'wb+') as destination:
                     for chunk in file.chunks():
                         destination.write(chunk)
+                print(f"Saved uploaded file to: {file_path}")
                 
                 query = self.get_e3fp_fingerprint(file_path)
+                print("Loading embeddings file...")
+                embeddings = np.load('../data/embeddings_e3fp.npy')
+                print(f"Embeddings shape: {embeddings.shape}")
+                
                 index = IndexFlatIP(1024)
-                embeddings = np.load('./data/embeddings_e3fp.npy')
                 index.add(embeddings)
+                print("Added embeddings to index")
                 
                 distances, indices = index.search(query.reshape(1, -1), 10)
+                print(f"Search results - indices: {indices}, distances: {distances}")
+                
                 results = [{'index': int(idx), 'distance': float(dist)} 
                           for idx, dist in zip(indices[0], distances[0])]
                 
-                # Clean up temp files
+                print(f"Cleaning up temp directory: {temp_dir}")
                 shutil.rmtree(temp_dir)
                 
                 return Response({'results': results}, status=status.HTTP_200_OK)
                 
             except Exception as e:
+                print(f"Error in file search: {str(e)}")
                 if os.path.exists(temp_dir):
                     shutil.rmtree(temp_dir)
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
         else:
+            print(f"Invalid search type: {search_type}")
             return Response({'error': 'Invalid search type'}, status=status.HTTP_400_BAD_REQUEST)
 
 class SDFUploaderViewSet(viewsets.ViewSet):

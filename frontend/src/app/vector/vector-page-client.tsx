@@ -33,7 +33,7 @@ export default function VectorPageClient() {
     setError("");
 
     try {
-      const { data } = await api.post("/cluster/vector/search/", {
+      const { data } = await api.post("/cluster/vector/search/search/", {
         type: "smiles",
         query: smiles,
       });
@@ -64,11 +64,15 @@ export default function VectorPageClient() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const { data } = await api.post("/cluster/vector/search", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const { data } = await api.post(
+        "/cluster/vector/search/search",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       setSearchResult(JSON.stringify(data.results, null, 2));
     } catch (err) {
