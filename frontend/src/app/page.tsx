@@ -1,20 +1,22 @@
 "use client";
 
 import api from "@/utils/api";
-import type { NextPage } from "next";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+
+import nextConfig from "../../next.config.mjs";
 
 const fetchStatistics = async () => {
   const response = await api.get("/statistics/");
   return response.data;
 };
 
-const Home: NextPage = () => {
+const Home = () => {
   const [stats, setStats] = useState({
     totalMolecules: 0,
     totalCategories: 0,
   });
+  const basePath = nextConfig.basePath;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,7 +33,7 @@ const Home: NextPage = () => {
     <div>
       <div className="relative">
         <Image
-          src="/services/clc-db/bgDark.webp"
+          src={`${basePath}/bgDark.webp`}
           alt="Banner"
           width={1792}
           height={256}
@@ -43,9 +45,6 @@ const Home: NextPage = () => {
       </div>
       <main className="p-10">
         <section className="container mx-auto p-4">
-          {/* <h1 className="text-4xl font-bold mb-6 text-center">
-                        Welcome to CLC-DB!
-                    </h1> */}
           <div className="bg-white shadow-md rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4">What Is CLC-DB?</h2>
             <p className="text-gray-700 leading-relaxed">
@@ -72,7 +71,7 @@ const Home: NextPage = () => {
               development or chemical material research.
             </p>
             <Image
-              src="/services/clc-db/demo.png"
+              src={`${basePath}/demo.png`}
               alt="Molecule Structure Demo Picture"
               width={1200}
               height={256}
