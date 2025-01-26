@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .utils import perform_clustering
+from .utils import perform_clustering, perform_clustering_from_files
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from e3fp.pipeline import fprints_from_sdf
@@ -13,6 +13,7 @@ from faiss import IndexFlatIP
 import os
 import shutil
 import time
+from django.db import connection
 
 class VectorSearchViewSet(viewsets.ViewSet):
     def get_morgan_fingerprint(self, smiles, radius=2, bits=1024):
@@ -165,7 +166,7 @@ class ClusteringViewSet(viewsets.ViewSet):
         try:
             # Get SDF files for this category from database
             sdf_files = self.get_sdf_files_by_category(category)
-            print(f"Found {len(sdf_files)} SDF files for category: {category}", sdf_files)
+            print(f"Found {len(sdf_files)} SDF files for category: {category}", sdf_files[:int(len(sdf_files)/10)])
             if not sdf_files:
                 return Response({'error': 'No SDF files found for this category'}, 
                               status=status.HTTP_404_NOT_FOUND)
@@ -181,9 +182,9 @@ class ClusteringViewSet(viewsets.ViewSet):
 
             print("Clustering parameters:", descriptor, bits, radius, rdkit_inv, reduction_method, cluster_method, clusters)
             
-            # Perform clustering
-            result = perform_clustering(
-                "data/random_category",
+            # Perform clustering using file list
+            result = perform_clustering_from_files(
+                sdf_files,
                 descriptor,
                 bits,
                 radius,
@@ -212,17 +213,19 @@ class ClusteringViewSet(viewsets.ViewSet):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def get_sdf_files_by_category(self, category):
-        """Helper method to get SDF files for a category from database"""
-        # TODO: Implement actual database query
-        category="random_category"
-        # This is a placeholder implementation
-        return [
-            f'data/{category}/56-54-2.sdf',
-            f'data/{category}/118-10-5.sdf',
-            f'data/{category}/130-89-2.sdf',
-            f'data/{category}/130-95-0.sdf',
-            f'data/{category}/90-39-1.sdf'
+        """Get SDF files for molecules matching the given category"""
+        from proteins.models import Molecule
+        
+        # Query molecules with the specified category
+        molecules = Molecule.objects.filter(category__name=category)
+        
+        # Get SDF file paths based on cas_id
+        sdf_files = [
+            f'data/all_sdfs/{molecule.cas_id}.sdf'
+            for molecule in molecules
         ]
+        
+        return sdf_files
 
     def create(self, request):
         saved_folder = request.data.get("saved_folder")
