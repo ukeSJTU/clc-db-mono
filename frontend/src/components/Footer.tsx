@@ -1,126 +1,54 @@
-// This is the footer component that will be displayed at the bottom of all pages of the website.
-
 import Link from "next/link";
 
 const Footer = () => {
   return (
     <footer className="bg-gray-900 text-gray-400 py-12 px-4 md:px-6 lg:px-8">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div className="space-y-4">
-          <h4 className="text-gray-300 font-semibold">Overview</h4>
-          <ul className="space-y-2">
-            <li>
-              <Link
-                className="hover:text-gray-200 transition-colors"
-                href="/overview/card/1"
-              >
-                Card
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="hover:text-gray-200 transition-colors"
-                href="/overview/table/1"
-              >
-                Table
-              </Link>
-            </li>
-          </ul>
-        </div>
-        <div className="space-y-4">
-          <h4 className="text-gray-300 font-semibold">Tools</h4>
-          <ul className="space-y-2">
-            <li>
-              <Link
-                className="hover:text-gray-200 transition-colors"
-                href="/download/categories"
-              >
-                Download
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="hover:text-gray-200 transition-colors"
-                href="/search"
-              >
-                Search
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="hover:text-gray-200 transition-colors"
-                href="/cluster"
-              >
-                Cluster
-              </Link>
-            </li>
-          </ul>
-        </div>
-        <div className="space-y-4">
-          <h4 className="text-gray-300 font-semibold">Resources</h4>
-          <ul className="space-y-2">
-            <li>
-              <Link
-                className="hover:text-gray-200 transition-colors"
-                href="https://www.bidepharm.com/"
-              >
-                毕得医药
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="hover:text-gray-200 transition-colors"
-                href="https://pubchem.ncbi.nlm.nih.gov/"
-              >
-                PubChem
-              </Link>
-            </li>
-          </ul>
-        </div>
-        <div className="space-y-4">
-          <h4 className="text-gray-300 font-semibold">Powered By</h4>
-          <div className="space-y-2">
-            {/* <p>
-                            This website uses the following external libraries:
-                        </p> */}
-            <ul className="space-y-1">
-              <li>
-                <Link
-                  className="hover:text-gray-200 transition-colors"
-                  href="https://3dmol.org/doc/index.html"
-                  target="_blank"
-                >
-                  3Dmol.js
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="hover:text-gray-200 transition-colors"
-                  href="https://partridgejiang.github.io/Kekule.js/"
-                  target="_blank"
-                >
-                  Kekule.js
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="hover:text-gray-200 transition-colors"
-                  href="https://www.chartjs.org/"
-                  target="_blank"
-                >
-                  Chart.js
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
+        {/* Overview Section */}
+        <FooterSection title="Overview">
+          <FooterLink href="/overview/card/1">Card</FooterLink>
+          <FooterLink href="/overview/table/1">Table</FooterLink>
+        </FooterSection>
+
+        {/* Tools Section */}
+        <FooterSection title="Tools">
+          <FooterLink href="/download/categories">Download</FooterLink>
+          <FooterLink href="/search">Search</FooterLink>
+          <FooterLink href="/cluster">Cluster</FooterLink>
+        </FooterSection>
+
+        {/* Resources Section */}
+        <FooterSection title="Resources">
+          <FooterLink href="https://www.bidepharm.com/">毕得医药</FooterLink>
+          <FooterLink href="https://pubchem.ncbi.nlm.nih.gov/">
+            PubChem
+          </FooterLink>
+        </FooterSection>
+
+        {/* Powered By Section */}
+        <FooterSection title="Powered By">
+          <FooterLink href="https://3dmol.org/doc/index.html" external>
+            3Dmol.js
+          </FooterLink>
+          <FooterLink
+            href="https://partridgejiang.github.io/Kekule.js/"
+            external
+          >
+            Kekule.js
+          </FooterLink>
+          <FooterLink href="https://www.chartjs.org/" external>
+            Chart.js
+          </FooterLink>
+        </FooterSection>
       </div>
+
+      {/* Bottom Bar */}
       <div className="mt-8 text-center">
         <p>
           © 2024{" "}
           <Link
-            className="underline"
-            href={"https://compbio.sjtu.edu.cn/home.html"}
+            href="https://compbio.sjtu.edu.cn/home.html"
+            className="underline hover:text-gray-200 transition-colors"
           >
             Yang Lab
           </Link>
@@ -133,3 +61,38 @@ const Footer = () => {
 };
 
 export default Footer;
+
+interface FooterSectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+const FooterSection: React.FC<FooterSectionProps> = ({ title, children }) => (
+  <div className="space-y-4">
+    <h4 className="text-gray-300 font-semibold">{title}</h4>
+    <ul className="space-y-2">{children}</ul>
+  </div>
+);
+
+interface FooterLinkProps {
+  href: string;
+  children: React.ReactNode;
+  external?: boolean;
+}
+
+const FooterLink: React.FC<FooterLinkProps> = ({
+  href,
+  children,
+  external,
+}) => (
+  <li>
+    <Link
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      className="hover:text-gray-200 transition-colors"
+    >
+      {children}
+    </Link>
+  </li>
+);
