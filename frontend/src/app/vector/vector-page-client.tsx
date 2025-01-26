@@ -5,23 +5,36 @@ import api from "@/utils/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import CategorySelector from "@/components/CategorySelector";
 import ClusteringResultsChart from "@/components/clusterpage/ClusteringResultsChart";
+import OverviewContainer from "@/components/OverviewContainer";
+import type { MoleculeProps } from "@/types/molecule";
 
 interface ClusterResult {
-  labels: number[];
-  coordinates: number[][];
-  silhouetteScore?: number;
-  clusterCenters?: number[][];
+  coordinates: string[][][];
+  class_numbers: number[];
+  ids: string[];
+}
+
+interface SearchResult {
+  molecule: MoleculeProps;
+  distance: number;
 }
 
 export default function VectorPageClient() {
   const [activeTab, setActiveTab] = useState("faiss");
   const [searchType, setSearchType] = useState<"smiles" | "file">("smiles");
   const [smiles, setSmiles] = useState("");
-  const [searchResult, setSearchResult] = useState("");
+  const [searchResult, setSearchResult] = useState<SearchResult[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [selectedCategory, setSelectedCategory] = useState("");
+  const pageNumber = 0;
+  const [paginationState, setPaginationState] = useState({
+    page: pageNumber,
+    pageSize: 12,
+    totalPages: 0,
+  });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -36,7 +49,7 @@ export default function VectorPageClient() {
 
     setIsLoading(true);
     setError("");
-    setSearchResult("");
+    setSearchResult([]);
 
     try {
       const { data } = await api.post("/cluster/vector/search/search/", {
@@ -44,19 +57,12 @@ export default function VectorPageClient() {
         query: smiles,
       });
 
-      if (data.results && data.results.length > 0) {
-        const formattedResults = data.results
-          .map(
-            (result: any, index: number) =>
-              `#${index + 1}: Index=${result.index}, Similarity=${(
-                1 - result.distance
-              ).toFixed(4)}`
-          )
-          .join("\n");
+      console.log(data);
 
-        setSearchResult(formattedResults);
+      if (data.results && data.results.length > 0) {
+        setSearchResult(data.results);
       } else {
-        setSearchResult("No results found");
+        setSearchResult([]);
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -80,7 +86,7 @@ export default function VectorPageClient() {
 
     setIsLoading(true);
     setError("");
-    setSearchResult("");
+    setSearchResult([]);
 
     try {
       const formData = new FormData();
@@ -98,18 +104,9 @@ export default function VectorPageClient() {
       );
 
       if (data.results && data.results.length > 0) {
-        const formattedResults = data.results
-          .map(
-            (result: any, index: number) =>
-              `#${index + 1}: Index=${result.index}, Similarity=${(
-                1 - result.distance
-              ).toFixed(4)}`
-          )
-          .join("\n");
-
-        setSearchResult(formattedResults);
+        setSearchResult(data.results);
       } else {
-        setSearchResult("No results found");
+        setSearchResult([]);
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -237,21 +234,21 @@ export default function VectorPageClient() {
 
             {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
 
-            <div>
-              <label
-                htmlFor="search-result"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Search Result
-              </label>
-              <Textarea
-                id="search-result"
-                value={searchResult}
-                readOnly
-                placeholder="Search results will appear here"
-                className="h-32"
+            {searchResult.length > 0 ? (
+              <OverviewContainer
+                molecules={searchResult.map((result) => result.molecule)}
+                paginationProps={{
+                  page: currentPage,
+                  setPage: setCurrentPage,
+                  pageSize: itemsPerPage,
+                  setPageSize: (size) =>
+                    setPaginationState((prev) => ({ ...prev, pageSize: size })),
+                  totalPages: Math.ceil(searchResult.length / itemsPerPage),
+                }}
               />
-            </div>
+            ) : (
+              <p className="text-gray-500">No results found</p>
+            )}
           </div>
         </TabsContent>
 

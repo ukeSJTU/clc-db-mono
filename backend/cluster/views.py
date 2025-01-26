@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .utils import perform_clustering, perform_clustering_from_files
+from proteins.models import Molecule
+from proteins.serializers import MoleculeSerializer
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from e3fp.pipeline import fprints_from_sdf
@@ -50,30 +52,46 @@ class VectorSearchViewSet(viewsets.ViewSet):
             print(f"Processing SMILES query: {smiles}")
             if not smiles:
                 return Response({'error': 'SMILES string is required'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
             try:
                 query = self.get_morgan_fingerprint(smiles)
                 print("Loading embeddings file...")
                 embeddings = np.load('./data/embeddings_morgan.npy')
                 print(f"Embeddings shape: {embeddings.shape}")
-                
+
                 index = IndexFlatIP(1024)
-                print(1)
+                print("Creating FAISS index")
                 index.add(embeddings)
                 print("Added embeddings to index")
-                
+
                 distances, indices = index.search(query.reshape(1, -1), 10)
                 print(f"Search results - indices: {indices}, distances: {distances}")
-                
-                results = [{'index': int(idx), 'distance': float(dist)} 
-                          for idx, dist in zip(indices[0], distances[0])]
-                
+
+                # Step 1: Fetch all molecules ordered by CAS ID
+                all_molecules = list(Molecule.objects.order_by('cas_id'))
+
+                # Step 2: Map FAISS indices to Molecule objects
+                selected_molecules = [all_molecules[idx] for idx in indices[0]]
+
+                # Step 3: Serialize the results
+                serializer = MoleculeSerializer(selected_molecules, many=True)
+                print(f"Serialized data: {serializer.data}")
+
+                # Step 4: Combine serialized data with distances
+                results = [
+                    {
+                        'molecule': data,
+                        'distance': float(distances[0][i])
+                    }
+                    for i, data in enumerate(serializer.data)
+                ]
+
                 return Response({'results': results}, status=status.HTTP_200_OK)
-                
+
             except Exception as e:
                 print(f"Error in SMILES search: {str(e)}")
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                
+  
         elif search_type == 'file':
             file = request.FILES.get('file')
             print(f"Processing file upload: {file.name if file else 'No file'}")
@@ -103,12 +121,28 @@ class VectorSearchViewSet(viewsets.ViewSet):
                 distances, indices = index.search(query.reshape(1, -1), 10)
                 print(f"Search results - indices: {indices}, distances: {distances}")
                 
-                results = [{'index': int(idx), 'distance': float(dist)} 
-                          for idx, dist in zip(indices[0], distances[0])]
-                
+                # Step 1: Fetch all molecules ordered by CAS ID
+                all_molecules = list(Molecule.objects.order_by('cas_id'))
+
+                # Step 2: Map FAISS indices to Molecule objects
+                selected_molecules = [all_molecules[idx] for idx in indices[0]]
+
+                # Step 3: Serialize the results
+                serializer = MoleculeSerializer(selected_molecules, many=True)
+                print(f"Serialized data: {serializer.data}")
+
+                # Step 4: Combine serialized data with distances
+                results = [
+                    {
+                        'molecule': data,
+                        'distance': float(distances[0][i])
+                    }
+                    for i, data in enumerate(serializer.data)
+                ]
+
                 print(f"Cleaning up temp directory: {temp_dir}")
                 shutil.rmtree(temp_dir)
-                
+
                 return Response({'results': results}, status=status.HTTP_200_OK)
                 
             except Exception as e:
