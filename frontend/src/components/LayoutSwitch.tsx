@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
@@ -12,14 +12,12 @@ const LayoutSwitch: React.FC<LayoutSwitchProps> = ({
   onToggleLayout,
 }) => {
   const handleToggle = () => {
-    onToggleLayout(currentLayout === "grid" ? "table" : "grid");
+    const newLayout = currentLayout === "grid" ? "table" : "grid";
+    onToggleLayout(newLayout);
   };
 
   return (
-    <div
-      className="flex justify-center items-center gap-2"
-      aria-label="Layout Switch"
-    >
+    <div className="flex items-center gap-2" aria-label="Layout Switch">
       <Label htmlFor="layout-switch" className="cursor-pointer">
         Grid
       </Label>
@@ -36,4 +34,4 @@ const LayoutSwitch: React.FC<LayoutSwitchProps> = ({
   );
 };
 
-export default LayoutSwitch;
+export default memo(LayoutSwitch);
