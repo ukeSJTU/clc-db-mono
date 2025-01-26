@@ -1,8 +1,8 @@
 "use client";
 
 import { Category } from "@/types/molecule";
-import React, { useEffect, useState } from "react";
-import api from "@/utils/api";
+import React from "react";
+import useSWR from "swr";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -12,27 +12,37 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import CategoryBadge from "@/components/CategoryBadge";
+import api from "@/utils/api";
 
 interface CategorySelectorProps {
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
 }
 
+// Fetcher function for useSWR
+const fetchCategories = async (): Promise<Category[]> => {
+  const { data } = await api.get("/categories/");
+  return data;
+};
+
 const CategorySelector: React.FC<CategorySelectorProps> = ({
   selectedCategory,
   onCategoryChange,
 }) => {
-  const [categories, setCategories] = useState<Category[]>([]);
+  // Fetch categories using SWR
+  const {
+    data: categories = [],
+    error,
+    isLoading,
+  } = useSWR("/categories/", fetchCategories);
 
-  useEffect(() => {
-    // Fetch categories from your API
-    const fetchCategories = async () => {
-      const response = api.get("/categories/");
-      const data = (await response).data;
-      setCategories(data);
-    };
-    fetchCategories();
-  }, []);
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading categories. Please try again later.</div>;
+  }
 
   return (
     <div className="space-x-4 space-y-2 flex flex-row items-center justify-center">
