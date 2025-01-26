@@ -17,8 +17,10 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import Image from "next/image";
+import nextConfig from "@/utils/config";
 
 const Navbar = () => {
+  const basePath = nextConfig.basePath;
   return (
     <div className="flex justify-between flex-row w-full top-0 p-4 z-10 sticky bg-white">
       <NavigationMenu>
@@ -206,7 +208,7 @@ const Navbar = () => {
       <div className="text-lg font-bold flex items-center">
         <Link href="/" className="flex items-center">
           <Image
-            src="/favicon.webp"
+            src={`${basePath}/favicon.webp`}
             alt="Favicon"
             width={32}
             height={32}
