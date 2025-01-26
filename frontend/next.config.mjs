@@ -17,6 +17,7 @@ const nextConfig = {
       },
     ],
   },
+  basePath: "/services/clc-db", // This is the base path of the website. For example, if you are deploying to https://www.example.com/website, then you would use "/website"
 };
 
 export default nextConfig;
