@@ -1,5 +1,3 @@
-// This is a simple component that displays a molecule formula in a more readable format.
-
 import React from "react";
 
 interface MoleculeFormulaSpanProps {
@@ -9,17 +7,18 @@ interface MoleculeFormulaSpanProps {
 const MoleculeFormulaSpan: React.FC<MoleculeFormulaSpanProps> = ({
   formula,
 }) => {
-  if (!formula || formula.trim() === "" || formula === "N/A") {
-    return <span>N/A</span>; // Return "N/A" for empty or invalid formula
+  // Handle cases where the formula is undefined, empty, or invalid
+  if (!formula?.trim() || formula === "N/A") {
+    return <span>N/A</span>; // Show "N/A" for invalid input
   }
 
-  // Regex to match elements and numbers
+  // Regex to match chemical elements and their counts
   const formulaParts = Array.from(formula.matchAll(/([A-Z][a-z]*)(\d*)/g));
 
   return (
     <p>
-      {formulaParts.map(([_, element, count], index) => (
-        <span key={index}>
+      {formulaParts.map(([element, count], index) => (
+        <span key={`${element}-${index}`}>
           {element}
           {count && <sub>{count}</sub>}
         </span>
