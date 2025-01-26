@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "@/utils/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import CategorySelector from "@/components/CategorySelector";
 import ClusteringResultsChart from "@/components/clusterpage/ClusteringResultsChart";
 import OverviewContainer from "@/components/OverviewContainer";
+import { SearchOptions } from "@/components/SearchOptions";
 import type { MoleculeProps } from "@/types/molecule";
+import { Loader2 } from "lucide-react";
 
 interface ClusterResult {
   coordinates: string[][][];
@@ -40,9 +41,25 @@ export default function VectorPageClient() {
   const [error, setError] = useState("");
   const [clusteringResults, setClusteringResults] =
     useState<ClusterResult | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        // Fetch any initial data you need here
+        // For example, fetching categories for the CategorySelector
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
 
   const handleSearch = async () => {
-    if (!smiles) {
+    if (!smiles && searchType === "smiles") {
       setError("Please enter a SMILES string");
       return;
     }
@@ -53,7 +70,7 @@ export default function VectorPageClient() {
 
     try {
       const { data } = await api.post("/cluster/vector/search/search/", {
-        type: "smiles",
+        type: searchType,
         query: smiles,
       });
 
@@ -153,8 +170,16 @@ export default function VectorPageClient() {
     }
   };
 
+  if (isInitialLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto p-4">
+    <div className="mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Vector Operations</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -165,90 +190,19 @@ export default function VectorPageClient() {
 
         <TabsContent value="faiss">
           <div className="space-y-4">
-            <div className="flex space-x-4 mb-4">
-              <Button
-                variant={searchType === "smiles" ? "default" : "outline"}
-                onClick={() => setSearchType("smiles")}
-              >
-                Enter SMILES
-              </Button>
-              <Button
-                variant={searchType === "file" ? "default" : "outline"}
-                onClick={() => setSearchType("file")}
-              >
-                Upload SDF File
-              </Button>
-            </div>
-
-            {searchType === "smiles" && (
-              <div>
-                <label
-                  htmlFor="smiles"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Enter SMILES String
-                </label>
-                <Input
-                  id="smiles"
-                  value={smiles}
-                  onChange={(e) => setSmiles(e.target.value)}
-                  placeholder="e.g. C1=CC=CC=C1"
-                  className="w-full"
-                />
-                {error && searchType === "smiles" && !smiles && (
-                  <p className="text-sm text-red-500 mt-2">
-                    Please enter a valid SMILES string
-                  </p>
-                )}
-              </div>
-            )}
-
-            {searchType === "file" && (
-              <div>
-                <label
-                  htmlFor="sdf-upload"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Upload SDF File
-                </label>
-                <div className="flex items-center space-x-4">
-                  <Input
-                    id="sdf-upload"
-                    type="file"
-                    onChange={handleFileUpload}
-                    accept=".sdf"
-                    className="w-full"
-                  />
-                </div>
-                {error && searchType === "file" && (
-                  <p className="text-sm text-red-500 mt-2">
-                    Please select a valid SDF file
-                  </p>
-                )}
-              </div>
-            )}
-
+            <SearchOptions
+              searchType={searchType}
+              setSearchType={setSearchType}
+              smiles={smiles}
+              setSmiles={setSmiles}
+              handleFileUpload={handleFileUpload}
+              error={error}
+            />
             <Button onClick={handleSearch} disabled={isLoading}>
               {isLoading ? "Searching..." : "Search"}
             </Button>
 
             {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
-
-            {searchResult.length > 0 ? (
-              <OverviewContainer
-                molecules={searchResult.map((result) => result.molecule)}
-                paginationProps={{
-                  page: currentPage,
-                  setPage: setCurrentPage,
-                  pageSize: itemsPerPage,
-                  setPageSize: (size) =>
-                    setPaginationState((prev) => ({ ...prev, pageSize: size })),
-                  totalPages: Math.ceil(searchResult.length / itemsPerPage),
-                }}
-              />
-            ) : (
-              <p className="text-gray-500">No results found</p>
-            )}
           </div>
         </TabsContent>
 
@@ -265,8 +219,8 @@ export default function VectorPageClient() {
             {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
 
             {clusteringResults && (
-              <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">
+              <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-2xl font-semibold mb-4">
                   Clustering Results
                 </h2>
                 <ClusteringResultsChart results={clusteringResults} />
@@ -275,6 +229,24 @@ export default function VectorPageClient() {
           </div>
         </TabsContent>
       </Tabs>
+      {searchResult.length > 0 ? (
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4">Search Results</h2>
+          <OverviewContainer
+            molecules={searchResult.map((result) => result.molecule)}
+            paginationProps={{
+              page: currentPage,
+              setPage: setCurrentPage,
+              pageSize: itemsPerPage,
+              setPageSize: (size) =>
+                setPaginationState((prev) => ({ ...prev, pageSize: size })),
+              totalPages: Math.ceil(searchResult.length / itemsPerPage),
+            }}
+          />
+        </div>
+      ) : (
+        <p className="text-gray-500 mt-4">No results found</p>
+      )}
     </div>
   );
 }
