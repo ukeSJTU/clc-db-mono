@@ -106,6 +106,12 @@ const CategoryDownloadPage = ({ params }: { params: { category: string } }) => {
 
         if (data.next === null) {
           allMolecules.push(...data.results);
+          sdfFiles.push(
+            ...data.results.map(
+              (molecule: MoleculeProps) =>
+                `${process.env.NEXT_PUBLIC_STATIC}/all_sdfs/${molecule.cas_id}.sdf`
+            )
+          );
           hasNext = false;
         } else {
           allMolecules.push(...data.results);
