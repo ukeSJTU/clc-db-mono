@@ -75,12 +75,20 @@ const fetchSdfFiles = async (
   const missingFiles: string[] = [];
   for (const [index, sdfUrl] of sdfFiles.entries()) {
     try {
+      console.log("Fetching:", sdfUrl);
       const response = await fetch(sdfUrl);
+      console.log("Status:", response.status, response.statusText);
       if (!response.ok) {
         missingFiles.push(`Missing SDF: ${sdfUrl}`);
         continue;
       }
       const text = await response.text();
+      console.log(
+        "Fetched length:",
+        text.length,
+        "content:",
+        text.slice(0, 100)
+      );
       zip.file(`molecule_${index + 1}.sdf`, text);
     } catch {
       missingFiles.push(`Missing SDF: ${sdfUrl}`);
