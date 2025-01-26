@@ -95,7 +95,17 @@ const CategoryDownloadPage = ({ params }: { params: { category: string } }) => {
           `/search/molecules?category=${params.category}&page=${nextPage}&page_size=${allPageSize}`
         );
         const data = response.data;
+        console.log(
+          "当前页:",
+          nextPage,
+          "本页数量:",
+          data.results.length,
+          "next:",
+          data.next
+        );
+
         if (data.next === null) {
+          allMolecules.push(...data.results);
           hasNext = false;
         } else {
           allMolecules.push(...data.results);
