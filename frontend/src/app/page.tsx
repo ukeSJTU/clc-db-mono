@@ -4,7 +4,7 @@ import api from "@/utils/api";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 
-import nextConfig from "../../next.config.mjs";
+import nextConfig from "@/utils/config";
 
 const fetchStatistics = async () => {
   const response = await api.get("/statistics/");

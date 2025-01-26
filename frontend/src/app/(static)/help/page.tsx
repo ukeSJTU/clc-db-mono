@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import nextConfig from "../../../../next.config.mjs";
+import nextConfig from "@/utils/config";
 
 const HelpPage = () => {
   const basePath = nextConfig.basePath;
