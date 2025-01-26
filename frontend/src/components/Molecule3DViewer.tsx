@@ -16,56 +16,60 @@ const Molecule3DViewer: React.FC<Molecule3DViewerProps> = ({ casId }) => {
   useEffect(() => {
     if (!viewerRef.current || !data) return;
 
-    import("3dmol/build/3Dmol.js")
-      .then(($3Dmol) => {
-        try {
-          const viewer = new $3Dmol.createViewer(viewerRef.current, {
-            backgroundColor: "white",
-          });
-          viewer.addModel(data, "sdf");
-          viewer.setStyle({}, { stick: {} });
-          viewer.zoomTo();
-          viewer.render();
-          setIsLoading(false);
-        } catch (e) {
-          setError("Failed to initialize the molecular viewer.");
-          setIsLoading(false);
-        }
-      })
-      .catch(() => {
-        setError("3Dmol.js library could not be loaded.");
+    // Dynamically import 3Dmol.js to avoid loading it server-side
+    const load3DViewer = async () => {
+      try {
+        const $3Dmol = await import("3dmol/build/3Dmol.js");
+        const viewer = new $3Dmol.createViewer(viewerRef.current, {
+          backgroundColor: "white",
+        });
+
+        viewer.addModel(data, "sdf");
+        viewer.setStyle({}, { stick: {} });
+        viewer.zoomTo();
+        viewer.render();
+
         setIsLoading(false);
-      });
+      } catch (e) {
+        console.log(e);
+        setError(
+          "Failed to initialize the molecular viewer. See console for more details."
+        );
+        setIsLoading(false);
+      }
+    };
+
+    load3DViewer();
   }, [data]);
 
   useEffect(() => {
     setIsLoading(true);
-    // Fetch the .sdf file based on the CAS ID
+
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_STATIC}/all_sdfs/${casId}.sdf`
+          `${process.env.NEXT_PUBLIC_STATIC}/all_sdfs/${casId}.sdf`,
+          { mode: "no-cors" }
         );
 
-        // Check if the response returned a 404 error or any other error
         if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error(`.sdf file for CAS ID ${casId} was not found.`);
-          } else {
-            throw new Error(
-              `Network response was not ok (Status: ${response.status}).`
-            );
-          }
+          throw new Error(
+            response.status === 404
+              ? `.sdf file for CAS ID ${casId} was not found.`
+              : `Error fetching data: ${response.statusText}`
+          );
         }
 
         const textData = await response.text();
         setData(textData);
-        setError(null); // Clear any previous errors on successful data fetch
+        setError(null); // Clear any previous errors
       } catch (e) {
+        setError(
+          e instanceof Error ? e.message : "An unexpected error occurred."
+        );
         setData(null);
-        setError(e instanceof Error ? e.message : "Failed to load .sdf data.");
       } finally {
-        setIsLoading(false); // Always stop loading regardless of success or failure
+        setIsLoading(false);
       }
     };
 
@@ -73,19 +77,28 @@ const Molecule3DViewer: React.FC<Molecule3DViewerProps> = ({ casId }) => {
   }, [casId]);
 
   return (
-    <div style={{ width: "100%", height: "100%", position: "relative" }}>
-      {error ? (
-        <Skeleton className="h-full" />
-      ) : (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+      }}
+      aria-label={`3D viewer for molecule with CAS ID ${casId}`}
+    >
+      {isLoading && <Skeleton className="h-full w-full" />}
+      {!isLoading && error && (
+        <div className="h-full w-full flex items-center justify-center bg-gray-100 text-gray-500">
+          <p className="text-center">{error}</p>
+        </div>
+      )}
+      {!isLoading && !error && (
         <div
           ref={viewerRef}
           style={{
             width: "100%",
             height: "100%",
           }}
-        >
-          {isLoading && <Skeleton className="h-full" />}
-        </div>
+        />
       )}
     </div>
   );
