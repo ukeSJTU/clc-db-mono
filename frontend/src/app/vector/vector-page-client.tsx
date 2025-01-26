@@ -204,6 +204,24 @@ export default function VectorPageClient() {
 
             {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
           </div>
+          {searchResult.length > 0 ? (
+            <div className="mt-8">
+              <h2 className="text-2xl font-semibold mb-4">Search Results</h2>
+              <OverviewContainer
+                molecules={searchResult.map((result) => result.molecule)}
+                paginationProps={{
+                  page: currentPage,
+                  setPage: setCurrentPage,
+                  pageSize: itemsPerPage,
+                  setPageSize: (size) =>
+                    setPaginationState((prev) => ({ ...prev, pageSize: size })),
+                  totalPages: Math.ceil(searchResult.length / itemsPerPage),
+                }}
+              />
+            </div>
+          ) : (
+            <p className="text-gray-500 mt-4">No results found</p>
+          )}
         </TabsContent>
 
         <TabsContent value="cluster">
@@ -229,24 +247,6 @@ export default function VectorPageClient() {
           </div>
         </TabsContent>
       </Tabs>
-      {searchResult.length > 0 ? (
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-4">Search Results</h2>
-          <OverviewContainer
-            molecules={searchResult.map((result) => result.molecule)}
-            paginationProps={{
-              page: currentPage,
-              setPage: setCurrentPage,
-              pageSize: itemsPerPage,
-              setPageSize: (size) =>
-                setPaginationState((prev) => ({ ...prev, pageSize: size })),
-              totalPages: Math.ceil(searchResult.length / itemsPerPage),
-            }}
-          />
-        </div>
-      ) : (
-        <p className="text-gray-500 mt-4">No results found</p>
-      )}
     </div>
   );
 }
