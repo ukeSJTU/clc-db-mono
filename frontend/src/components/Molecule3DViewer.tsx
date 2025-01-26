@@ -19,6 +19,7 @@ const Molecule3DViewer: React.FC<Molecule3DViewerProps> = ({ casId }) => {
     // Dynamically import 3Dmol.js to avoid loading it server-side
     const load3DViewer = async () => {
       try {
+        // @ts-expect-error - 3dmol.js does not have types
         const $3Dmol = await import("3dmol/build/3Dmol.js");
         const viewer = new $3Dmol.createViewer(viewerRef.current, {
           backgroundColor: "white",
