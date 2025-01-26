@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SearchIcon, SquarePlus } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 
 interface SearchBarProps {
   query: string;
@@ -14,7 +14,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
   query,
   setQuery,
   handleSearch,
-  onSmilesInput,
 }) => {
   return (
     <div className="relative flex flex-row items-stretch space-x-2">

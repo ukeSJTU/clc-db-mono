@@ -18,7 +18,7 @@ const SearchOption: React.FC<SearchOptionProps> = ({
   isChecked,
   onChange,
 }) => {
-  const handleChange = (checked: boolean) => {
+  const handleChange = () => {
     onChange(searchName);
   };
 

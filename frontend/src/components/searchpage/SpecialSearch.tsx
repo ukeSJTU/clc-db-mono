@@ -6,7 +6,7 @@
 import React, { useState } from "react";
 
 import KekuleComponent from "@/components/searchpage/KekuleComponent";
-import { Pen, List, FilePlus2 } from "lucide-react";
+import { Pen, FilePlus2 } from "lucide-react";
 
 interface DrawStructureProps {
   onSubmit: (smiles: string, type: string) => void;

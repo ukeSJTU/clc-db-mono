@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+// @ts-expect-error - Kekule is not typed
 import { Kekule } from "kekule";
 import "kekule/theme/default";
 import React, { useEffect, useRef, useState } from "react";
@@ -18,12 +19,12 @@ const KekuleComponent: React.FC<KekuleComponentProps> = ({
 }) => {
   const containerRef = useRef(null); // DOM container for the composer
   const composerRef = useRef(null); // Ref to store the composer instance
-  const [smiles, setSmiles] = useState(""); // State to store SMILES string
+  const [, setSmiles] = useState(""); // State to store SMILES string
 
   useEffect(() => {
     // Initialize the Composer only once and store it in the ref
     if (containerRef.current && !composerRef.current) {
-      let composer = new Kekule.Editor.Composer(containerRef.current);
+      const composer = new Kekule.Editor.Composer(containerRef.current);
       composer.setDimension("600px", "400px");
       composerRef.current = composer; // Store the composer instance
     }
@@ -32,6 +33,7 @@ const KekuleComponent: React.FC<KekuleComponentProps> = ({
   // Function to log molecule info
   const handleSmilesSubmit = () => {
     if (composerRef.current) {
+      // @ts-expect-error - Kekule is not typed
       const chemDoc = composerRef.current.getChemObj();
       const mol = chemDoc.getChildAt(0); // Assuming the molecule is the first child
       const newSmiles = Kekule.IO.saveFormatData(mol, "smi");

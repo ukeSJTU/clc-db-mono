@@ -1,223 +1,142 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { useDebouncedCallback } from "use-debounce";
+import React from "react";
 import SearchBar from "@/components/searchpage/SearchBar";
-import { MoleculeProps } from "@/types/molecule";
 import OverviewContainer from "@/components/OverviewContainer";
 import SearchOptionsGroup from "@/components/searchpage/SearchOptionsGroup";
 import { SearchHeading, SearchTip } from "@/components/searchpage/SearchText";
 import SearchExamples from "@/components/searchpage/SearchExamples";
-import api from "@/utils/api";
+
 import {
   DrawStructureComponent,
   MultiCasIDSearchComponent,
 } from "@/components/searchpage/SpecialSearch";
 
-type SearchOption = {
-  displayName: string;
-  searchName: string;
-};
+import { useMoleculeSearch } from "@/hooks/useMoleculeSearch";
 
-interface SearchInfoComponentProps {
-  query: string;
-  searchOpt: SearchOption["searchName"];
-  resultsCount: number;
-}
+/**
+ * Available search fields for your UI: CAS ID, Name, SMILES
+ * (plus any others you might add).
+ */
+const searchOptions = [
+  { displayName: "CAS ID", searchName: "cas_id" },
+  { displayName: "Name", searchName: "name" },
+  { displayName: "SMILES", searchName: "smiles" },
+];
 
-const SearchInfoComponent: React.FC<SearchInfoComponentProps> = ({
-  query,
-  searchOpt,
-  resultsCount,
-}) => {
-  const escapedQuery = query.replace(/"/g, "&#34;");
+export default function SearchPage() {
+  // Our custom hook with default search option "cas_id" and default pageSize = 12
+  const {
+    searchOpt,
+    setSearchOpt,
+    query,
+    setQuery,
+    results,
+    isLoading,
+    error,
+    pagination,
+    updatePagination,
+    handleSearch,
+    setSearchInitiated,
+  } = useMoleculeSearch("cas_id", 12);
 
-  return resultsCount > 0 ? (
-    <div className="text-xl font-semibold text-nowrap">
-      <p className="text-gray-600 dark:text-gray-400">
-        Searching for {searchOpt} = {escapedQuery}
-      </p>
-    </div>
-  ) : null;
-};
+  // Example: If you want to automatically trigger a search once the user
+  // has typed something (and they've setSearchInitiated to `true`),
+  // you can rely on the debounced effect.
+  // (We're leaving it manual for now, so we only search on button or examples.)
 
-const SearchPage = () => {
-  const options = [
-    { displayName: "CAS ID", searchName: "cas_id" },
-    { displayName: "Name", searchName: "name" },
-    { displayName: "SMILES", searchName: "smiles" },
-  ];
-
-  const [searchOpt, setSearchOpt] = useState(options[0].searchName);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<MoleculeProps[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [searchInitiated, setSearchInitiated] = useState(false);
-
-  // Pagination settings
-  const [paginationState, setPaginationState] = useState({
-    page: 1,
-    pageSize: 12,
-    totalPages: 0,
-  });
-
-  const handleSearch = useDebouncedCallback(
-    async (
-      searchQuery = query,
-      searchOption = searchOpt,
-      page = paginationState.page,
-      pageSize = paginationState.pageSize
-    ) => {
-      if (searchQuery.trim() === "") {
-        setResults([]);
-        setPaginationState((prevState) => ({
-          ...prevState,
-          totalPages: 0,
-        }));
-        return;
-      }
-
-      setIsLoading(true);
-      console.log(
-        "Searching:",
-        `/search/molecules?${searchOption}=${searchQuery}&page=${page}&page_size=${pageSize}`
-      );
-
-      try {
-        const response = await api.get(
-          `/search/molecules?${searchOption}=${searchQuery}&page=${page}&page_size=${pageSize}`
-        );
-
-        const { results: fetchedResults = [], count = 0 } = response.data || {};
-
-        console.log("fetchedResults", fetchedResults);
-        setResults(fetchedResults);
-        setPaginationState((prevState) => ({
-          ...prevState,
-          totalPages: Math.ceil(count / pageSize),
-        }));
-        setSearchInitiated(true);
-      } catch (error) {
-        console.error("Failed to fetch molecules", error);
-        setResults([]);
-        setPaginationState((prevState) => ({
-          ...prevState,
-          totalPages: 0,
-        }));
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    300
-    // [query, searchOpt, paginationState.page, paginationState.pageSize]
-  );
-
+  /**
+   * A helper for special or example searches
+   */
   const handleSpecialSearchInput = (
-    query_str: string,
-    searchOpt: string,
-    triggerSearch: boolean = true
+    queryStr: string,
+    searchOptValue: string,
+    triggerSearch = true
   ) => {
-    setQuery(query_str);
-    setSearchOpt(searchOpt);
-    console.log("query_str", query_str);
-    console.log("searchOpt", searchOpt);
-    console.log("triggerSearch", triggerSearch);
-    if (triggerSearch === true) {
-      console.log("triggering search");
-      handleSearch(query_str, searchOpt, 1, paginationState.pageSize);
+    setQuery(queryStr);
+    setSearchOpt(searchOptValue);
+    if (triggerSearch) {
+      handleSearch(queryStr, searchOptValue, 1, pagination.pageSize);
     }
   };
 
-  const handleSmilesInput = (smiles: string) => {
-    setQuery(smiles);
-    setSearchOpt("smiles");
+  const handleExampleClick = (exampleQuery: string, exampleOpt: string) => {
+    handleSpecialSearchInput(exampleQuery, exampleOpt, true);
   };
 
-  const handlePaginationChange = (
-    newPaginationState: typeof paginationState
-  ) => {
-    setPaginationState(newPaginationState);
-  };
-
-  const handleExampleClick = (
-    exampleQuery: string,
-    exampleSearchOpt: string
-  ) => {
-    setQuery(exampleQuery);
-    setSearchOpt(exampleSearchOpt);
-    handleSearch(exampleQuery, exampleSearchOpt, 1, paginationState.pageSize);
-  };
-
-  useEffect(() => {
-    if (searchInitiated) {
-      handleSearch();
-    }
-  }, [searchInitiated, handleSearch]);
+  // If you prefer a separate error UI, you can do so here
+  // or show it inline near the search bar
 
   return (
     <div className="flex flex-col items-center py-12 space-y-4">
-      {/* Search Components */}
+      {/* Heading & Intro */}
       <div className="flex flex-col gap-2 w-full max-w-md sm:max-w-lg md:max-w-2xl">
         <SearchHeading />
-        <div className="flex flex-col gap-2 w-full max-w-md sm:max-w-lg md:max-w-2xl">
-          <SearchOptionsGroup
-            options={options}
-            setSearchOpt={setSearchOpt}
-            searchOpt={searchOpt}
-          />
-          <SearchBar
-            query={query}
-            setQuery={setQuery}
-            handleSearch={() =>
-              handleSearch(query, searchOpt, 1, paginationState.pageSize)
-            }
-            onSmilesInput={handleSmilesInput}
-          />
-          <SearchExamples onExampleClick={handleSpecialSearchInput} />
-        </div>
+        <SearchTip />
+
+        {/* Search Option Checkboxes (CAS, Name, SMILES) */}
+        <SearchOptionsGroup
+          options={searchOptions}
+          setSearchOpt={setSearchOpt}
+          searchOpt={searchOpt}
+        />
+
+        {/* Main search bar */}
+        <SearchBar
+          query={query}
+          setQuery={setQuery}
+          handleSearch={() =>
+            handleSearch(query, searchOpt, 1, pagination.pageSize)
+          }
+          onSmilesInput={(smiles) => {
+            setQuery(smiles);
+            setSearchOpt("smiles");
+          }}
+        />
+
+        {/* Common Examples */}
+        <SearchExamples onExampleClick={handleExampleClick} />
+
+        {/* Additional specialized search UI:
+            Kekule drawing + Multi-CAS file upload
+         */}
         <div className="flex flex-row items-center justify-center px-4">
           <div className="flex justify-end mr-2 w-1/2">
             <DrawStructureComponent
-              onSubmit={handleSpecialSearchInput}
-              onClose={() => setShowDropdown(false)}
+              onSubmit={(smiles) => handleSpecialSearchInput(smiles, "smiles")}
+              onClose={() => setSearchInitiated(true)}
             />
           </div>
           <div className="flex justify-start ml-2 w-1/2">
             <MultiCasIDSearchComponent
-              onSubmit={handleSpecialSearchInput}
-              onClose={() => setShowDropdown(false)}
+              onSubmit={(casIds) => handleSpecialSearchInput(casIds, "cas_id")}
+              onClose={() => setSearchInitiated(true)}
             />
           </div>
         </div>
       </div>
-      {/* Result Components */}
+
+      {/* If there's an error from the search hook, show it */}
+      {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+
+      {/* Display loading state if needed */}
+      {isLoading && (
+        <div className="flex justify-center mt-2">
+          <p>Loading...</p>
+        </div>
+      )}
+
+      {/* Results & Pagination */}
       <OverviewContainer
         molecules={results}
         paginationProps={{
-          page: paginationState.page,
-          setPage: (page) =>
-            handlePaginationChange({ ...paginationState, page }),
-          pageSize: paginationState.pageSize,
-          setPageSize: (pageSize) =>
-            handlePaginationChange({
-              ...paginationState,
-              pageSize,
-            }),
-          totalPages: paginationState.totalPages,
+          page: pagination.page,
+          setPage: (page) => updatePagination({ page }),
+          pageSize: pagination.pageSize,
+          setPageSize: (pageSize) => updatePagination({ pageSize, page: 1 }),
+          totalPages: pagination.totalPages,
         }}
-        // topLeftComponent={
-        //     searchInitiated && (
-        //         <SearchInfoComponent
-        //             query={query}
-        //             searchOpt={searchOpt}
-        //             resultsCount={results.length}
-        //         />
-        //     )
-        // }
       />
     </div>
   );
-};
-
-export default SearchPage;
+}
