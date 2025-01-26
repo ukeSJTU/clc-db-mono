@@ -12,19 +12,26 @@ const LayoutSwitch: React.FC<LayoutSwitchProps> = ({
   onToggleLayout,
 }) => {
   const handleToggle = () => {
-    const newLayout = currentLayout === "grid" ? "table" : "grid";
-    onToggleLayout(newLayout);
+    onToggleLayout(currentLayout === "grid" ? "table" : "grid");
   };
 
   return (
-    <div className="flex justify-center items-center gap-2">
-      <Label htmlFor="layout-switch">Grid</Label>
+    <div
+      className="flex justify-center items-center gap-2"
+      aria-label="Layout Switch"
+    >
+      <Label htmlFor="layout-switch" className="cursor-pointer">
+        Grid
+      </Label>
       <Switch
         id="layout-switch"
         checked={currentLayout === "grid"}
         onCheckedChange={handleToggle}
+        aria-checked={currentLayout === "grid"}
       />
-      <Label htmlFor="layout-switch">Table</Label>
+      <Label htmlFor="layout-switch" className="cursor-pointer">
+        Table
+      </Label>
     </div>
   );
 };
