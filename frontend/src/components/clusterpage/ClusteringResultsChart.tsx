@@ -18,7 +18,7 @@ declare module "chart.js" {
   }
 }
 
-interface ClusteringResultsChartProps {
+export interface ClusteringResultsChartProps {
   results: {
     coordinates: string[][][];
     class_numbers: number[];
@@ -26,13 +26,13 @@ interface ClusteringResultsChartProps {
   };
 }
 
-interface CustomTooltipItem extends TooltipItem<"scatter"> {
-  raw: {
-    x: number;
-    y: number;
-    cas_id: string;
-  };
-}
+// interface CustomTooltipItem extends TooltipItem<"scatter"> {
+//   raw: {
+//     x: number;
+//     y: number;
+//     cas_id: string;
+//   };
+// }
 
 const ClusteringResultsChart: React.FC<ClusteringResultsChartProps> = ({
   results,

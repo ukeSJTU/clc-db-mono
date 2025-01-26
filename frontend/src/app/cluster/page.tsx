@@ -10,7 +10,9 @@ import FileUploadComponent from "@/components/clusterpage/SDFUploader";
 import DescriptorSelector from "@/components/clusterpage/DescriptorSelector";
 import DescriptorParameters from "@/components/clusterpage/DescriptorParams";
 import ClusteringOptions from "@/components/clusterpage/ClusteringOptions";
-import ClusteringResultsChart from "@/components/clusterpage/ClusteringResultsChart";
+import ClusteringResultsChart, {
+  type ClusteringResultsChartProps,
+} from "@/components/clusterpage/ClusteringResultsChart";
 import ClusterParamsSheet from "@/components/clusterpage/ClusterSettings";
 
 import api from "@/utils/api";
@@ -21,8 +23,10 @@ import { Accordion, AccordionItem } from "@/components/ui/accordion";
 import { clusterFormSchema } from "@/types/form";
 
 const ClusterPage: React.FC = () => {
-  const [clusteringResults, setClusteringResults] = React.useState<any>(null);
-  const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
+  const [clusteringResults, setClusteringResults] = React.useState<
+    ClusteringResultsChartProps[]
+  >([]);
+  const [, setUploadedFiles] = React.useState<File[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
