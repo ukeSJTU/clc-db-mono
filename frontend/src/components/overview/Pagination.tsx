@@ -1,3 +1,4 @@
+import React from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -30,14 +31,19 @@ export function PaginationComponent({
   totalPages,
   pageSizeOptions = [12, 24, 36],
 }: PaginationComponentProps) {
+  const handleFirstPage = () => setPage(1);
+  const handlePrevPage = () => setPage(Math.max(page - 1, 1));
+  const handleNextPage = () => setPage(Math.min(page + 1, totalPages));
+  const handleLastPage = () => setPage(totalPages);
+
   return (
     <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
-      {/* Page Size Selection */}
+      {/* Rows per page selection */}
       <div className="flex items-center space-x-2">
         <p className="whitespace-nowrap text-sm font-medium">Rows per page</p>
         <Select
           value={`${pageSize}`}
-          onValueChange={(value) => setPageSize(Number(value))}
+          onValueChange={(val) => setPageSize(+val)}
         >
           <SelectTrigger className="h-8 w-[4.5rem]">
             <SelectValue placeholder={pageSize} />
@@ -52,47 +58,45 @@ export function PaginationComponent({
         </Select>
       </div>
 
-      {/* Pagination Controls */}
+      {/* Page info */}
       <div className="flex items-center justify-center text-sm font-medium">
         Page {page} of {totalPages}
       </div>
+
+      {/* Pagination buttons */}
       <div className="flex items-center space-x-2">
-        {/* First Page */}
         <Button
           aria-label="Go to first page"
           variant="outline"
           size="icon"
-          onClick={() => setPage(1)}
+          onClick={handleFirstPage}
           disabled={page <= 1}
         >
           <ChevronsLeftIcon className="size-4" aria-hidden="true" />
         </Button>
-        {/* Previous Page */}
         <Button
           aria-label="Go to previous page"
           variant="outline"
           size="icon"
-          onClick={() => setPage(Math.max(page - 1, 1))}
+          onClick={handlePrevPage}
           disabled={page <= 1}
         >
           <ChevronLeftIcon className="size-4" aria-hidden="true" />
         </Button>
-        {/* Next Page */}
         <Button
           aria-label="Go to next page"
           variant="outline"
           size="icon"
-          onClick={() => setPage(Math.min(page + 1, totalPages))}
+          onClick={handleNextPage}
           disabled={page >= totalPages}
         >
           <ChevronRightIcon className="size-4" aria-hidden="true" />
         </Button>
-        {/* Last Page */}
         <Button
           aria-label="Go to last page"
           variant="outline"
           size="icon"
-          onClick={() => setPage(totalPages)}
+          onClick={handleLastPage}
           disabled={page >= totalPages}
         >
           <ChevronsRightIcon className="size-4" aria-hidden="true" />
