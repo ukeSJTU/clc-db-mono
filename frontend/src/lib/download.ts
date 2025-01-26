@@ -8,6 +8,8 @@ import { MoleculeProps } from "@/types/molecule";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
+export type DownloadType = "csv" | "sdf" | "zip" | "mulliken" | "hirshfeld";
+
 const escapeCsvField = (field: string): string => {
   if (field.includes(",") || field.includes('"') || field.includes("\n")) {
     return `"${field.replace(/"/g, '""')}"`;
@@ -66,21 +68,11 @@ const generateCsvContent = (molecules: MoleculeProps[]) => {
   return [csvHeaders, ...csvRows].map((row) => row.join(",")).join("\n");
 };
 
-const downloadCsv = (molecules: MoleculeProps[]) => {
-  const csvContent = generateCsvContent(molecules);
-  const defaultFileName =
-    molecules.length === 1 ? molecules[0].cas_id : "molecules";
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  saveAs(blob, `${defaultFileName}.csv`);
-};
-
-const downloadSdf = async (
+const fetchSdfFiles = async (
   sdfFiles: string[],
-  defaultFileName: string = "molecules_sdf"
-): Promise<{ success: boolean; missingFiles: string[] }> => {
-  const zip = new JSZip();
-  let missingFiles = [];
-
+  zip: JSZip
+): Promise<string[]> => {
+  const missingFiles: string[] = [];
   for (const [index, sdfUrl] of sdfFiles.entries()) {
     try {
       const response = await fetch(sdfUrl);
@@ -94,126 +86,60 @@ const downloadSdf = async (
       missingFiles.push(`Missing SDF: ${sdfUrl}`);
     }
   }
-
-  // Add a missing report if there are any missing files
-  if (missingFiles.length > 0) {
-    zip.file("missing_files.txt", missingFiles.join("\n"));
-  }
-
-  const blob = await zip.generateAsync({ type: "blob" });
-  saveAs(blob, `${defaultFileName}.zip`);
-
-  return { success: missingFiles.length === 0, missingFiles };
-};
-
-const downloadBoth = async (
-  molecules: MoleculeProps[],
-  sdfFiles: string[]
-): Promise<{ success: boolean; missingFiles: string[] }> => {
-  const zip = new JSZip();
-  let missingFiles = [];
-
-  // Use CAS ID of the first molecule or a generic name if more than one
-  const defaultFileName =
-    molecules.length === 1 ? molecules[0].cas_id : "molecules_data";
-
-  // Add CSV file
-  const csvContent = generateCsvContent(molecules);
-  zip.file(`${defaultFileName}.csv`, csvContent);
-
-  // Add SDF files
-  for (const [index, sdfUrl] of sdfFiles.entries()) {
-    try {
-      const response = await fetch(sdfUrl);
-      if (!response.ok) {
-        missingFiles.push(`Missing SDF: ${sdfUrl}`);
-        continue;
-      }
-      const text = await response.text();
-      zip.file(`${molecules[index].cas_id}.sdf`, text);
-    } catch {
-      missingFiles.push(`Missing SDF: ${sdfUrl}`);
-    }
-  }
-
-  // Add a missing report if there are any missing files
-  if (missingFiles.length > 0) {
-    zip.file("missing_files.txt", missingFiles.join("\n"));
-  }
-
-  const blob = await zip.generateAsync({ type: "blob" });
-  saveAs(blob, `${defaultFileName}.zip`);
-
-  return { success: missingFiles.length === 0, missingFiles };
-};
-
-const downloadChargeFiles = async (
-  type: "mulliken" | "hirshfeld",
-  molecules: MoleculeProps[]
-): Promise<{ success: boolean; missingFiles: string[] }> => {
-  const zip = new JSZip();
-  let missingFiles = [];
-  const defaultFileName =
-    molecules.length === 1 ? molecules[0].cas_id : "molecules";
-
-  for (const molecule of molecules) {
-    const url = `${process.env.NEXT_PUBLIC_STATIC}/${type}/${molecule.cas_id}.chg`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        missingFiles.push(`Missing ${type} file: ${url}`);
-        continue;
-      }
-      const text = await response.text();
-      zip.file(`${molecule.cas_id}-${type}.chg`, text);
-    } catch {
-      missingFiles.push(`Missing ${type} file: ${url}`);
-    }
-  }
-
-  if (missingFiles.length > 0) {
-    zip.file("missing_files.txt", missingFiles.join("\n"));
-  }
-
-  const blob = await zip.generateAsync({ type: "blob" });
-  saveAs(blob, `${defaultFileName}-${type}.zip`);
-
-  return { success: missingFiles.length === 0, missingFiles };
+  return missingFiles;
 };
 
 const downloadFiles = async (
-  type: string,
+  type: DownloadType,
   molecules: MoleculeProps[],
   sdfFiles: string[]
 ): Promise<{ success: boolean; missingFiles: string[] }> => {
+  const zip = new JSZip();
+  let missingFiles: string[] = [];
   const defaultFileName =
     molecules.length === 1 ? molecules[0].cas_id : "molecules";
 
   try {
-    switch (type) {
-      case "csv":
-        await downloadCsv(molecules);
-        return { success: true, missingFiles: [] };
-      case "sdf":
-        const { success, missingFiles } = await downloadSdf(
-          sdfFiles,
-          defaultFileName
-        );
-        return { success, missingFiles };
-      case "zip":
-        const result = await downloadBoth(molecules, sdfFiles);
-        return result;
-      case "mulliken":
-        return await downloadChargeFiles("mulliken", molecules);
-      case "hirshfeld":
-        return await downloadChargeFiles("hirshfeld", molecules);
-      default:
-        console.error("Unknown download type:", type);
-        return { success: false, missingFiles: [] };
+    if (type === "csv") {
+      const csvContent = generateCsvContent(molecules);
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      saveAs(blob, `${defaultFileName}.csv`);
+    } else if (type === "sdf") {
+      missingFiles = await fetchSdfFiles(sdfFiles, zip);
+      const blob = await zip.generateAsync({ type: "blob" });
+      saveAs(blob, `${defaultFileName}.zip`);
+    } else if (type === "zip") {
+      const csvContent = generateCsvContent(molecules);
+      zip.file(`${defaultFileName}.csv`, csvContent);
+      missingFiles = await fetchSdfFiles(sdfFiles, zip);
+      const blob = await zip.generateAsync({ type: "blob" });
+      saveAs(blob, `${defaultFileName}.zip`);
+    } else if (type === "mulliken" || type === "hirshfeld") {
+      for (const molecule of molecules) {
+        const url = `${process.env.NEXT_PUBLIC_STATIC}/${type}/${molecule.cas_id}.chg`;
+        try {
+          const response = await fetch(url);
+          if (!response.ok) {
+            missingFiles.push(`Missing ${type} file: ${url}`);
+            continue;
+          }
+          const text = await response.text();
+          zip.file(`${molecule.cas_id}-${type}.chg`, text);
+        } catch {
+          missingFiles.push(`Missing ${type} file: ${url}`);
+        }
+      }
+      const blob = await zip.generateAsync({ type: "blob" });
+      saveAs(blob, `${defaultFileName}-${type}.zip`);
+    } else {
+      throw new Error("Unknown download type");
     }
+
+    return { success: missingFiles.length === 0, missingFiles };
   } catch (error) {
     console.error("Download error:", error);
-    return { success: false, missingFiles: [] };
+    return { success: false, missingFiles };
   }
 };
+
 export default downloadFiles;

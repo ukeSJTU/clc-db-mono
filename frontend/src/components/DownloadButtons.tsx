@@ -12,15 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import downloadFiles from "@/lib/download";
-import { MoleculeProps } from "@/types/molecule";
-import { DownloadIcon } from "lucide-react";
-import { FileTextIcon, ArchiveIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ArchiveIcon, DownloadIcon, FileTextIcon } from "lucide-react";
+import React from "react";
+import downloadFiles, { DownloadType } from "@/lib/download";
+import { MoleculeProps } from "@/types/molecule";
 
-// BaseDownloadButton is a simpler version of DownloadButton that doesn't include a dropdown
 interface BaseDownloadButtonProps {
-  type: "csv" | "sdf" | "zip"; // The type of file to download
+  type: DownloadType;
   molecules: MoleculeProps[];
   sdfFiles: string[];
   label?: string;
@@ -47,19 +46,14 @@ const BaseDownloadButton: React.FC<BaseDownloadButtonProps> = ({
         title: "Download Successful",
         description: `Your ${type.toUpperCase()} file(s) have been downloaded.`,
       });
-    } else if (missingFiles.length > 0) {
-      toast({
-        title: "Missing Files",
-        description: `The following SDF files were missing: ${missingFiles.join(
-          ", "
-        )}`,
-        variant: "warning",
-      });
     } else {
       toast({
-        title: "Download Failed",
-        description: "An error occurred while downloading the file(s).",
-        variant: "destructive",
+        title: missingFiles.length > 0 ? "Missing Files" : "Download Failed",
+        description:
+          missingFiles.length > 0
+            ? `The following files were missing: ${missingFiles.join(", ")}`
+            : "An error occurred while downloading the file(s).",
+        variant: missingFiles.length > 0 ? "warning" : "destructive",
       });
     }
   };
@@ -77,14 +71,14 @@ const BaseDownloadButton: React.FC<BaseDownloadButtonProps> = ({
 // SelectDownloadButton is a download button that allows the user to select the download type
 interface SelectDownloadButtonProps {
   molecules: MoleculeProps[];
-  sdfFiles: string[]; // Array of URLs or paths to .sdf files
+  sdfFiles: string[];
 }
+
 const SelectDownloadButton: React.FC<SelectDownloadButtonProps> = ({
   molecules,
   sdfFiles,
 }) => {
-  const [downloadOption, setDownloadOption] = useState("zip");
-
+  const [downloadOption, setDownloadOption] = useState<DownloadType>("zip");
   const { toast } = useToast();
 
   const handleDownload = async () => {
@@ -98,28 +92,23 @@ const SelectDownloadButton: React.FC<SelectDownloadButtonProps> = ({
         title: "Download Successful",
         description: `Your ${downloadOption.toUpperCase()} file(s) have been downloaded.`,
       });
-    } else if (missingFiles.length > 0) {
-      toast({
-        title: "Missing Files",
-        description: `The following SDF files were missing: ${missingFiles.join(
-          ", "
-        )}`,
-        variant: "warning",
-      });
     } else {
       toast({
-        title: "Download Failed",
-        description: "An error occurred while downloading the file(s).",
-        variant: "destructive",
+        title: missingFiles.length > 0 ? "Missing Files" : "Download Failed",
+        description:
+          missingFiles.length > 0
+            ? `The following files were missing: ${missingFiles.join(", ")}`
+            : "An error occurred while downloading the file(s).",
+        variant: missingFiles.length > 0 ? "warning" : "destructive",
       });
     }
   };
 
   return (
-    <div className="flex flex-row gap-2 items-center">
+    <div className="flex items-center gap-2">
       <Select
-        onValueChange={(value) => setDownloadOption(value)}
-        defaultValue="zip"
+        value={downloadOption}
+        onValueChange={(value) => setDownloadOption(value as DownloadType)}
       >
         <SelectTrigger>
           <SelectValue placeholder="Download Both (ZIP)" />
@@ -132,7 +121,6 @@ const SelectDownloadButton: React.FC<SelectDownloadButtonProps> = ({
           <SelectItem value="zip">All</SelectItem>
         </SelectContent>
       </Select>
-      {/* Add a button to manually trigger the download */}
       <Button onClick={handleDownload} title="Download">
         <DownloadIcon />
       </Button>
