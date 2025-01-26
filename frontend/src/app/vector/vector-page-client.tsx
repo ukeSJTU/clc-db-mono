@@ -6,13 +6,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import CategorySelector from "@/components/CategorySelector";
+import ClusteringResultsChart from "@/components/clusterpage/ClusteringResultsChart";
+
+interface ClusterResult {
+  labels: number[];
+  coordinates: number[][];
+  silhouetteScore?: number;
+  clusterCenters?: number[][];
+}
 
 export default function VectorPageClient() {
   const [activeTab, setActiveTab] = useState("faiss");
@@ -23,6 +25,8 @@ export default function VectorPageClient() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [clusteringResults, setClusteringResults] =
+    useState<ClusterResult | null>(null);
 
   const handleSearch = async () => {
     if (!smiles) {
@@ -118,8 +122,38 @@ export default function VectorPageClient() {
     }
   };
 
-  const handleCluster = () => {
-    console.log(`Performed clustering for category: ${selectedCategory}`);
+  const handleCluster = async () => {
+    if (!selectedCategory) {
+      setError("Please select a category");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+    setClusteringResults(null);
+
+    try {
+      const { data } = await api.post(
+        "/cluster/cluster_by_category/cluster_by_category/",
+        {
+          category: selectedCategory,
+        }
+      );
+
+      if (data.results) {
+        setClusteringResults(data.results);
+      } else {
+        setError("No clustering results found");
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -223,26 +257,24 @@ export default function VectorPageClient() {
 
         <TabsContent value="cluster">
           <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="category"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Select Category
-              </label>
-              <Select onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="category1">Category 1</SelectItem>
-                  <SelectItem value="category2">Category 2</SelectItem>
-                  <SelectItem value="category3">Category 3</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <CategorySelector
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+            />
+            <Button onClick={handleCluster} disabled={isLoading}>
+              {isLoading ? "Clustering..." : "Perform Clustering"}
+            </Button>
 
-            <Button onClick={handleCluster}>Perform Clustering</Button>
+            {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+
+            {clusteringResults && (
+              <div className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">
+                  Clustering Results
+                </h2>
+                <ClusteringResultsChart results={clusteringResults} />
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>

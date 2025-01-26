@@ -156,6 +156,74 @@ class SDFUploaderViewSet(viewsets.ViewSet):
 
 
 class ClusteringViewSet(viewsets.ViewSet):
+    @action(detail=False, methods=['post'])
+    def cluster_by_category(self, request):
+        category = request.data.get('category')
+        if not category:
+            return Response({'error': 'Category is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            # Get SDF files for this category from database
+            sdf_files = self.get_sdf_files_by_category(category)
+            print(f"Found {len(sdf_files)} SDF files for category: {category}", sdf_files)
+            if not sdf_files:
+                return Response({'error': 'No SDF files found for this category'}, 
+                              status=status.HTTP_404_NOT_FOUND)
+                
+            # Use default parameters from example clustering
+            descriptor = "E3FP"
+            bits = 1024
+            radius = 1.5
+            rdkit_inv = True
+            reduction_method = "PCA"
+            cluster_method = "K-Means"
+            clusters = 5
+
+            print("Clustering parameters:", descriptor, bits, radius, rdkit_inv, reduction_method, cluster_method, clusters)
+            
+            # Perform clustering
+            result = perform_clustering(
+                "data/random_category",
+                descriptor,
+                bits,
+                radius,
+                rdkit_inv,
+                2,  # rdkit_radius
+                False,  # rdkit_use_features
+                False,  # rdkit_use_bond_types
+                False,  # rdkit_use_chirality
+                reduction_method,
+                cluster_method,
+                clusters,
+                "lloyd",  # knn_algro
+                0.25,  # eps
+                5  # min_samples
+            )
+
+            print(f"Clustering complete for category: {category}")
+            print(f"results: {result}")
+            
+            return Response({
+                "message": f"Clustering performed for category: {category}",
+                "results": result
+            })
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get_sdf_files_by_category(self, category):
+        """Helper method to get SDF files for a category from database"""
+        # TODO: Implement actual database query
+        category="random_category"
+        # This is a placeholder implementation
+        return [
+            f'data/{category}/56-54-2.sdf',
+            f'data/{category}/118-10-5.sdf',
+            f'data/{category}/130-89-2.sdf',
+            f'data/{category}/130-95-0.sdf',
+            f'data/{category}/90-39-1.sdf'
+        ]
+
     def create(self, request):
         saved_folder = request.data.get("saved_folder")
         descriptor = request.data.get("descriptor")
