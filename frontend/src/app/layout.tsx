@@ -4,7 +4,6 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Toaster } from "@/components/ui/toaster";
-import Link from "next/link";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -30,10 +29,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Link rel="icon" href="/favicon.webp" />
+        <link rel="icon" href="/services/clc-db/favicon.webp" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Andika:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@100..900&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`antialiased`} // ${geistSans.variable} ${geistMono.variable}
       >
         <div className="flex flex-col min-h-screen justify-between">
           <div className="h-18">
