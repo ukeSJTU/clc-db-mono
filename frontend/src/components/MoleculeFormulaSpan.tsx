@@ -17,7 +17,7 @@ const MoleculeFormulaSpan: React.FC<MoleculeFormulaSpanProps> = ({
 
   return (
     <p>
-      {formulaParts.map(([element, count], index) => (
+      {formulaParts.map(([_, element, count], index) => (
         <span key={`${element}-${index}`}>
           {element}
           {count && <sub>{count}</sub>}
