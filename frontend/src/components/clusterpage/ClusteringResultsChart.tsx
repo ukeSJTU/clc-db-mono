@@ -102,10 +102,15 @@ const ClusteringResultsChart: React.FC<ClusteringResultsChartProps> = ({
                 if (context.tooltip.dataPoints) {
                   const casId = context.tooltip.dataPoints[0].raw.cas_id;
                   tooltipEl.innerHTML = `
-                                        <img src="https://compbio.sjtu.edu.cn/services/clc-db/static/2Dimages/${casId}.png" 
-                                             alt="${casId}" 
-                                             style="width: 200px; height: 200px; object-fit: contain; user-select: none;"/>
-                                    `;
+                            <div style="background: white; padding: 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                              <div style="text-align: center; margin-bottom: 4px; font-weight: bold;">
+                                ${casId}
+                              </div>
+                              <img src="https://compbio.sjtu.edu.cn/services/clc-db/static/2Dimages/${casId}.png" 
+                                 alt="${casId}" 
+                                 style="width: 200px; height: 200px; object-fit: contain; user-select: none;"/>
+                            </div>
+                          `;
                 }
 
                 // Position tooltip
