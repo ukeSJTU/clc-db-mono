@@ -47,7 +47,7 @@ const ClusteringResultsChart: React.FC<ClusteringResultsChartProps> = ({
         Chart.register(...registerables);
 
         const data: ChartData<"scatter"> = {
-          datasets: results.class_numbers.map((classNumber) => ({
+          datasets: results.class_numbers?.map((classNumber) => ({
             label: `Class ${classNumber}`,
             data: results.coordinates[classNumber].map((_, index) => ({
               x: parseFloat(results.coordinates[classNumber][index][0]),
