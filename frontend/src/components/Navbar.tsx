@@ -31,9 +31,9 @@ const Navbar = () => {
               <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                 <li className="row-span-3">
                   <NavigationMenuLink asChild>
-                    <a
-                      className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                    <Link
                       href=""
+                      className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
                     >
                       <Icons.logo className="h-6 w-6" />
                       <div className="mb-2 mt-4 text-lg font-medium">
@@ -43,7 +43,7 @@ const Navbar = () => {
                         Overview of all the molecules in the database on CLC-DB.
                         Data rich, interactive and user-friendly.
                       </p>
-                    </a>
+                    </Link>
                   </NavigationMenuLink>
                 </li>
                 <ListItem href="/overview/card/1" title="Card">
@@ -57,114 +57,23 @@ const Navbar = () => {
           </NavigationMenuItem>
 
           <NavigationMenuItem>
-            <Link href="/download/categories" legacyBehavior passHref>
+            <Link href="/download/categories" passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Download
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
 
-          {/* <NavigationMenuItem>
-                        <NavigationMenuTrigger>Download</NavigationMenuTrigger>
-                        <NavigationMenuContent>
-                            <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                                <li className="row-span-3">
-                                    <NavigationMenuLink asChild>
-                                        <a
-                                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                                            href="/"
-                                        >
-                                            <Icons.logo className="h-6 w-6" />
-                                            <div className="mb-2 mt-4 text-lg font-medium">
-                                                CLC-DB-Download
-                                            </div>
-                                            <p className="text-sm leading-tight text-muted-foreground">
-                                                Download the molecule(s) from
-                                                the database on CLC-DB.
-                                                Choose to download a single
-                                                molecule or multiple molecules.
-                                            </p>
-                                        </a>
-                                    </NavigationMenuLink>
-                                </li>
-                                <ListItem
-                                    href="/download/molecules"
-                                    title="CAS ID"
-                                >
-                                    Download a single molecule by its unique CAS
-                                    ID.
-                                </ListItem>
-                                <ListItem
-                                    href="/download/categories"
-                                    title="Category"
-                                >
-                                    Download a group of molecules of the same
-                                    Category.
-                                </ListItem>
-                            </ul>
-                        </NavigationMenuContent>
-                    </NavigationMenuItem> */}
-
           <NavigationMenuItem>
-            <Link href="/search" legacyBehavior passHref>
+            <Link href="/search" passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Search
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
 
-          {/* <NavigationMenuItem>
-                        <NavigationMenuTrigger>
-                            External JS
-                        </NavigationMenuTrigger>
-                        <NavigationMenuContent>
-                            <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                                <li className="row-span-3">
-                                    <NavigationMenuLink asChild>
-                                        <a
-                                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                                            href="/"
-                                        >
-                                            <Icons.logo className="h-6 w-6" />
-                                            <div className="mb-2 mt-4 text-lg font-medium">
-                                                CLC-DB-Ext
-                                            </div>
-                                            <p className="text-sm leading-tight text-muted-foreground">
-                                                CLC-DB also supports multiple
-                                                external JS library such as
-                                                3Dmol and Kekulejs. Play with
-                                                them here.
-                                            </p>
-                                        </a>
-                                    </NavigationMenuLink>
-                                </li>
-                                <ListItem
-                                    href="/externalJS/3dmol"
-                                    title="3Dmol"
-                                >
-                                    3Dmol: an open-source Java(Script) viewer
-                                    for chemical structures in 3D.
-                                </ListItem>
-                                <ListItem
-                                    href="/externalJS/kekule"
-                                    title="Kekule"
-                                >
-                                    A pure JavaScript chemical graphics and
-                                    cheminformatics library.
-                                </ListItem>
-                                <ListItem
-                                    href="/externalJS/charts"
-                                    title="Charts"
-                                >
-                                    Charts.js: an open-source toolkit to display
-                                    charts on web page.
-                                </ListItem>
-                            </ul>
-                        </NavigationMenuContent>
-                    </NavigationMenuItem> */}
-
           <NavigationMenuItem>
-            <Link href="/cluster" legacyBehavior passHref>
+            <Link href="/cluster" passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Cluster
               </NavigationMenuLink>
@@ -172,7 +81,7 @@ const Navbar = () => {
           </NavigationMenuItem>
 
           <NavigationMenuItem>
-            <Link href="/vector" legacyBehavior passHref>
+            <Link href="/vector" passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Vector
               </NavigationMenuLink>
@@ -180,7 +89,7 @@ const Navbar = () => {
           </NavigationMenuItem>
 
           <NavigationMenuItem>
-            <Link href="/statistics" legacyBehavior passHref>
+            <Link href="/statistics" passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Stats
               </NavigationMenuLink>
@@ -188,7 +97,7 @@ const Navbar = () => {
           </NavigationMenuItem>
 
           <NavigationMenuItem>
-            <Link href="/help" legacyBehavior passHref>
+            <Link href="/help" passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Help
               </NavigationMenuLink>
@@ -196,7 +105,7 @@ const Navbar = () => {
           </NavigationMenuItem>
 
           <NavigationMenuItem>
-            <Link href="/contact" legacyBehavior passHref>
+            <Link href="/contact" passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Contact
               </NavigationMenuLink>
@@ -225,12 +134,12 @@ export default Navbar;
 
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
+  React.ComponentPropsWithoutRef<typeof Link> & { title: string }
 >(({ className, title, children, ...props }, ref) => {
   return (
     <li>
       <NavigationMenuLink asChild>
-        <a
+        <Link
           ref={ref}
           className={cn(
             "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
@@ -242,7 +151,7 @@ const ListItem = React.forwardRef<
           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
             {children}
           </p>
-        </a>
+        </Link>
       </NavigationMenuLink>
     </li>
   );
