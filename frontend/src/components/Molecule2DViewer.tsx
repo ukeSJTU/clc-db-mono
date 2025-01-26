@@ -5,7 +5,7 @@ import { MoleculeProps } from "@/types/molecule";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const Molecule2DImage = ({ molecule }: { molecule: MoleculeProps }) => {
+const Molecule2DViewer = ({ molecule }: { molecule: MoleculeProps }) => {
   const [hasError, setHasError] = useState(false);
 
   const handleImageError = () => {
@@ -48,4 +48,4 @@ const Molecule2DImage = ({ molecule }: { molecule: MoleculeProps }) => {
   );
 };
 
-export default Molecule2DImage;
+export default Molecule2DViewer;
