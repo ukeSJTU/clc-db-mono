@@ -35,7 +35,9 @@ const DescriptorSelector: React.FC<DescriptorSelectorProps> = ({
           <Card>
             <AccordionTrigger>
               <CardHeader>
-                <CardTitle>Step 2. Select Descriptor</CardTitle>
+                <CardTitle className="text-2xl">
+                  Step 2. Select Descriptor
+                </CardTitle>
               </CardHeader>
             </AccordionTrigger>
             <AccordionContent>

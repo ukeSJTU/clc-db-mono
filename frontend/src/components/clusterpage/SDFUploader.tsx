@@ -55,7 +55,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
           <Card className="shadow-md">
             <AccordionTrigger>
               <CardHeader>
-                <CardTitle>Step 1. Select Files</CardTitle>
+                <CardTitle className="text-2xl">Step 1. Select Files</CardTitle>
               </CardHeader>
             </AccordionTrigger>
             <AccordionContent>

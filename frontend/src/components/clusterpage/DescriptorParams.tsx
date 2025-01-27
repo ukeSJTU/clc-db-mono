@@ -31,7 +31,7 @@ const E3FPParameters: React.FC<E3FPParametersProps> = ({ control }) => {
     <Card>
       <AccordionTrigger>
         <CardHeader>
-          <CardTitle>Step 3. E3FP Parameters</CardTitle>
+          <CardTitle className="text-2xl">Step 3. E3FP Parameters</CardTitle>
         </CardHeader>
       </AccordionTrigger>
       <AccordionContent>
@@ -118,7 +118,7 @@ const RDKitParameters: React.FC<RDKitParametersProps> = ({ control }) => {
     <Card>
       <AccordionTrigger>
         <CardHeader>
-          <CardTitle>Step 3. Morgan Parameters</CardTitle>
+          <CardTitle className="text-2xl">Step 3. Morgan Parameters</CardTitle>
         </CardHeader>
       </AccordionTrigger>
       <AccordionContent>

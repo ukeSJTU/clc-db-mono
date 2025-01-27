@@ -36,7 +36,7 @@ const ClusteringOptions: React.FC<ClusteringOptionsProps> = ({
     <Card className="mb-4">
       <AccordionTrigger>
         <CardHeader>
-          <CardTitle>Step 4. Clustering Options</CardTitle>
+          <CardTitle className="text-2xl">Step 4. Clustering Options</CardTitle>
         </CardHeader>
       </AccordionTrigger>
       <AccordionContent>
