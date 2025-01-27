@@ -180,16 +180,20 @@ export default function VectorPageClient() {
 
   return (
     <div className="mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Vector Operations</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Vector Operations</h1>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="max-w-6xl mx-auto"
+      >
+        <TabsList className="grid w-full grid-cols-2 gap-4 max-w-2xl mx-auto mb-6">
           <TabsTrigger value="faiss">FAISS Search</TabsTrigger>
           <TabsTrigger value="cluster">Cluster</TabsTrigger>
         </TabsList>
 
         <TabsContent value="faiss">
-          <div className="space-y-4">
+          <div className="space-y-6 max-w-3xl mx-auto">
             <SearchOptions
               searchType={searchType}
               setSearchType={setSearchType}
@@ -198,55 +202,65 @@ export default function VectorPageClient() {
               handleFileUpload={handleFileUpload}
               error={error}
             />
-            <Button onClick={handleSearch} disabled={isLoading}>
-              {isLoading ? "Searching..." : "Search"}
-            </Button>
-
-            {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
-          </div>
-          {searchResult.length > 0 ? (
-            <div className="mt-8">
-              <h2 className="text-2xl font-semibold mb-4">Search Results</h2>
-              <OverviewContainer
-                molecules={searchResult.map((result) => result.molecule)}
-                paginationProps={{
-                  page: currentPage,
-                  setPage: setCurrentPage,
-                  pageSize: itemsPerPage,
-                  setPageSize: (size) =>
-                    setPaginationState((prev) => ({ ...prev, pageSize: size })),
-                  totalPages: Math.ceil(searchResult.length / itemsPerPage),
-                }}
-              />
+            <div className="flex justify-center">
+              <Button onClick={handleSearch} disabled={isLoading}>
+                {isLoading ? "Searching..." : "Search"}
+              </Button>
             </div>
-          ) : (
-            <p className="text-gray-500 mt-4">No results found</p>
-          )}
-        </TabsContent>
-
-        <TabsContent value="cluster">
-          <div className="space-y-4">
-            <CategorySelector
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-            />
-            <Button onClick={handleCluster} disabled={isLoading}>
-              {isLoading ? "Clustering..." : "Perform Clustering"}
-            </Button>
-
-            {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
-
-            {clusteringResults && (
-              <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-2xl font-semibold mb-4">
-                  Clustering Results
-                </h2>
-                <ClusteringResultsChart results={clusteringResults} />
+            {error && (
+              <div className="text-red-500 text-sm mt-2 text-center">
+                {error}
               </div>
             )}
           </div>
         </TabsContent>
+
+        <TabsContent value="cluster">
+          <div className="space-y-6 max-w-3xl mx-auto">
+            <CategorySelector
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+            />
+            <div className="flex justify-center">
+              <Button onClick={handleCluster} disabled={isLoading}>
+                {isLoading ? "Clustering..." : "Perform Clustering"}
+              </Button>
+            </div>
+            {error && (
+              <div className="text-red-500 text-sm mt-2 text-center">
+                {error}
+              </div>
+            )}
+          </div>
+
+          {clusteringResults && (
+            <div className="mt-8 bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto">
+              <h2 className="text-2xl font-semibold mb-4 text-center">
+                Clustering Results
+              </h2>
+              <ClusteringResultsChart results={clusteringResults} />
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
+      {searchResult.length > 0 ? (
+        <div className="mt-8 max-w-6xl mx-auto text-center">
+          <h2 className="text-2xl font-semibold mb-4">Search Results</h2>
+          <OverviewContainer
+            molecules={searchResult.map((result) => result.molecule)}
+            paginationProps={{
+              page: currentPage,
+              setPage: setCurrentPage,
+              pageSize: itemsPerPage,
+              setPageSize: (size) =>
+                setPaginationState((prev) => ({ ...prev, pageSize: size })),
+              totalPages: Math.ceil(searchResult.length / itemsPerPage),
+            }}
+          />
+        </div>
+      ) : (
+        <p className="text-gray-500 mt-4 text-center">No results found</p>
+      )}
     </div>
   );
 }
