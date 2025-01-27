@@ -259,7 +259,9 @@ export default function VectorPageClient() {
           />
         </div>
       ) : (
-        <p className="text-gray-500 mt-4 text-center">No results found</p>
+        activeTab === "faiss" && (
+          <p className="text-gray-500 mt-4 text-center">No results found</p>
+        )
       )}
     </div>
   );
