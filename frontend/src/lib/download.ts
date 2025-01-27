@@ -36,7 +36,17 @@ const generateCsvContent = (molecules: MoleculeProps[]) => {
     "Hydrogen Bond Acceptor Count",
     "Hydrogen Bond Donor Count",
     "Rotatable Bond Count",
-    // TODO: add new properties here
+    "Zero-point correction",
+    "Thermal Correction Energy",
+    "Thermal Correction Enthalpy",
+    "Thermal Correction Gibbs",
+    "Sum Electronic Zero Point",
+    "Sum Electronic Thermal Energy",
+    "Sum Electronic Thermal Enthalpy",
+    "Sum Electronic Thermal Free Energy",
+    "HOMO Energy",
+    "LUMO Energy",
+    "HOMO-LUMO Gap",
   ];
 
   const csvRows = molecules.map((molecule) => {
@@ -62,6 +72,17 @@ const generateCsvContent = (molecules: MoleculeProps[]) => {
       molecule.hydrogen_bond_acceptor_count?.toString() || "",
       molecule.hydrogen_bond_donor_count?.toString() || "",
       molecule.rotatable_bond_count?.toString() || "",
+      molecule.zero_point_correction?.toFixed(6) || "",
+      molecule.thermal_correction_energy?.toFixed(6) || "",
+      molecule.thermal_correction_enthalpy?.toFixed(6) || "",
+      molecule.thermal_correction_gibbs?.toFixed(6) || "",
+      molecule.sum_electronic_zero_point?.toFixed(6) || "",
+      molecule.sum_electronic_thermal_energy?.toFixed(6) || "",
+      molecule.sum_electronic_thermal_enthalpy?.toFixed(6) || "",
+      molecule.sum_electronic_thermal_free_energy?.toFixed(6) || "",
+      molecule.homo_energy?.toFixed(6) || "",
+      molecule.lumo_energy?.toFixed(6) || "",
+      molecule.homo_lumo_gap?.toFixed(6) || "",
     ];
   });
 
