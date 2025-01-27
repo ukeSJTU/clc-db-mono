@@ -38,7 +38,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`antialiased`} // ${geistSans.variable} ${geistMono.variable}
+      // className={`antialiased`} // ${geistSans.variable} ${geistMono.variable}
       >
         <div className="flex flex-col min-h-screen justify-between">
           <div className="h-18">
